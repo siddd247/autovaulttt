@@ -12,5 +12,13 @@ dependencies = [
     "Werkzeug>=3.0.0"
 ]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+exclude = ["instance*", "tests*", "static*"]
+
+[tool.setuptools]
+py-modules = ["wsgi", "config", "seed"]
+
 [tool.vercel]
 entrypoint = "wsgi:app"
