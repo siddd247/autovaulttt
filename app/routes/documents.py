@@ -1,6 +1,8 @@
 import os
 import uuid
+# pyrefly: ignore[missing-import]
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, send_from_directory, current_app
+# pyrefly: ignore[missing-import]
 from werkzeug.utils import secure_filename
 from app.models import db
 from app.models.vehicle import Vehicle

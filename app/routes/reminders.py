@@ -1,3 +1,4 @@
+# pyrefly: ignore[missing-import]
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from app.models import db
 from app.models.vehicle import Vehicle
