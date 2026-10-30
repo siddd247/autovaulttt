@@ -20,7 +20,9 @@
             </div>
             <div class="compliance-chips-row">
                 {% for alert in document_alerts %}
-                    <a href="{{ url_for('reminders.index', selected=alert.vehicle.id) }}" class="compliance-chip {% if alert.status == 'Expired' %}chip-expired{% else %}chip-soon{% endif %}" title="Click to view and complete {{ alert.type }} renewal reminder">
+                    <a href="{{ url_for('reminders.index', selected=alert.vehicle.id, open_reminder=alert.reminder_id) if alert.reminder_id else url_for('reminders.index', selected=alert.vehicle.id) }}" 
+                       class="compliance-chip {% if alert.status == 'Expired' %}chip-expired{% else %}chip-soon{% endif %}" 
+                       title="Click to view all details and renew {{ alert.type }} for {{ alert.vehicle.model }}">
                         <span class="compliance-chip-dot"></span>
                         <span class="compliance-chip-veh">{{ alert.vehicle.model }}</span>
                         <span class="compliance-chip-text">{{ alert.type }}: {{ alert.status }}</span>
@@ -61,15 +63,21 @@
                     {% endif %}
                     {% set ins_status = primary_vehicle.get_insurance_status() %}
                     {% if ins_status.status != 'Unspecified' %}
-                        <span class="badge-tag {% if ins_status.status == 'Expired' %}badge-subtle-rose{% elif ins_status.status == 'Expiring Soon' %}badge-subtle-amber{% else %}badge-subtle-green{% endif %}">
+                        <a href="{{ url_for('reminders.index', selected=primary_vehicle.id, open_reminder=primary_ins_rem_id) if primary_ins_rem_id else url_for('reminders.index', selected=primary_vehicle.id) }}" 
+                           class="badge-tag {% if ins_status.status == 'Expired' %}badge-subtle-rose{% elif ins_status.status == 'Expiring Soon' %}badge-subtle-amber{% else %}badge-subtle-green{% endif %}"
+                           style="text-decoration: none; cursor: pointer;"
+                           title="Click to view all details and renew insurance">
                             <i data-lucide="shield" style="width: 12px; height: 12px;"></i> Ins: {{ ins_status.status }}
-                        </span>
+                        </a>
                     {% endif %}
                     {% set pol_status = primary_vehicle.get_pollution_status() %}
                     {% if pol_status.status != 'Unspecified' %}
-                        <span class="badge-tag {% if pol_status.status == 'Expired' %}badge-subtle-rose{% elif pol_status.status == 'Expiring Soon' %}badge-subtle-amber{% else %}badge-subtle-green{% endif %}">
+                        <a href="{{ url_for('reminders.index', selected=primary_vehicle.id, open_reminder=primary_pol_rem_id) if primary_pol_rem_id else url_for('reminders.index', selected=primary_vehicle.id) }}" 
+                           class="badge-tag {% if pol_status.status == 'Expired' %}badge-subtle-rose{% elif pol_status.status == 'Expiring Soon' %}badge-subtle-amber{% else %}badge-subtle-green{% endif %}"
+                           style="text-decoration: none; cursor: pointer;"
+                           title="Click to view all details and renew PUCC">
                             <i data-lucide="leaf" style="width: 12px; height: 12px;"></i> PUCC: {{ pol_status.status }}
-                        </span>
+                        </a>
                     {% endif %}
                 </div>
                 <div class="vehicle-odo-large">

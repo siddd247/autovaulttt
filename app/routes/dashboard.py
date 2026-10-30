@@ -31,28 +31,39 @@ def index():
     # Fleet-wide Document Expiry Alerts (Insurance & PUCC)
     document_alerts = []
     for v in vehicles:
+        v_active_rems = Reminder.query.filter(
+            Reminder.vehicle_id == v.id,
+            Reminder.status != 'Completed'
+        ).all()
+        v_ins_rem = next((r for r in v_active_rems if r.is_insurance_reminder()), None)
+        v_pol_rem = next((r for r in v_active_rems if r.is_pollution_reminder()), None)
+
         ins = v.get_insurance_status()
         if ins['status'] == 'Expired':
             document_alerts.append({
                 'vehicle': v, 'type': 'Insurance Policy', 'status': 'Expired',
-                'badge': 'badge-vault-red', 'message': f"{v.display_name} ({v.registration_number or 'No Reg'}): Insurance policy expired {ins['days']} days ago!"
+                'badge': 'badge-vault-red', 'message': f"{v.display_name} ({v.registration_number or 'No Reg'}): Insurance policy expired {ins['days']} days ago!",
+                'reminder_id': v_ins_rem.id if v_ins_rem else None
             })
         elif ins['status'] == 'Expiring Soon':
             document_alerts.append({
                 'vehicle': v, 'type': 'Insurance Policy', 'status': 'Expiring Soon',
-                'badge': 'badge-vault-amber', 'message': f"{v.display_name} ({v.registration_number or 'No Reg'}): Insurance policy expires in {ins['days']} days."
+                'badge': 'badge-vault-amber', 'message': f"{v.display_name} ({v.registration_number or 'No Reg'}): Insurance policy expires in {ins['days']} days.",
+                'reminder_id': v_ins_rem.id if v_ins_rem else None
             })
 
         pol = v.get_pollution_status()
         if pol['status'] == 'Expired':
             document_alerts.append({
                 'vehicle': v, 'type': 'Pollution (PUCC)', 'status': 'Expired',
-                'badge': 'badge-vault-red', 'message': f"{v.display_name} ({v.registration_number or 'No Reg'}): PUCC emission certificate expired {pol['days']} days ago!"
+                'badge': 'badge-vault-red', 'message': f"{v.display_name} ({v.registration_number or 'No Reg'}): PUCC emission certificate expired {pol['days']} days ago!",
+                'reminder_id': v_pol_rem.id if v_pol_rem else None
             })
         elif pol['status'] == 'Expiring Soon':
             document_alerts.append({
                 'vehicle': v, 'type': 'Pollution (PUCC)', 'status': 'Expiring Soon',
-                'badge': 'badge-vault-amber', 'message': f"{v.display_name} ({v.registration_number or 'No Reg'}): PUCC emission certificate expires in {pol['days']} days."
+                'badge': 'badge-vault-amber', 'message': f"{v.display_name} ({v.registration_number or 'No Reg'}): PUCC emission certificate expires in {pol['days']} days.",
+                'reminder_id': v_pol_rem.id if v_pol_rem else None
             })
 
     # Telemetry summaries
@@ -60,6 +71,20 @@ def index():
     maint_stats = {'last_service': None, 'monthly_cost': 0.0, 'total_cost': 0.0}
     reminder_stats = {'pending_count': 0, 'overdue_count': 0}
     recent_activities = []
+    primary_ins_rem_id = None
+    primary_pol_rem_id = None
+
+    if primary_vehicle:
+        p_rems = Reminder.query.filter(
+            Reminder.vehicle_id == primary_vehicle.id,
+            Reminder.status != 'Completed'
+        ).all()
+        p_ins = next((r for r in p_rems if r.is_insurance_reminder()), None)
+        p_pol = next((r for r in p_rems if r.is_pollution_reminder()), None)
+        if p_ins:
+            primary_ins_rem_id = p_ins.id
+        if p_pol:
+            primary_pol_rem_id = p_pol.id
 
     current_month_prefix = date.today().strftime('%Y-%m')
 
@@ -157,5 +182,7 @@ def index():
         maint_stats=maint_stats,
         reminder_stats=reminder_stats,
         document_alerts=document_alerts,
+        primary_ins_rem_id=primary_ins_rem_id,
+        primary_pol_rem_id=primary_pol_rem_id,
         recent_activities=recent_activities[:6]
     )

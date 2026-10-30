@@ -35,9 +35,9 @@
             <div class="metric-grid">
                 <div class="metric-card">
                     <div class="metric-info">
-                        <span class="metric-label">Active Reminders</span>
+                        <span class="metric-label">Active Items</span>
                         <span class="metric-value">{{ active_reminders|length }}</span>
-                        <span class="metric-desc">Pending scheduled items</span>
+                        <span class="metric-desc">Scheduled alerts &amp; tasks</span>
                     </div>
                     <div class="metric-icon-box icon-blue">
                         <i data-lucide="clock"></i>
@@ -46,7 +46,7 @@
 
                 <div class="metric-card">
                     <div class="metric-info">
-                        <span class="metric-label">Overdue</span>
+                        <span class="metric-label">Expired / Overdue</span>
                         <span class="metric-value" style="{% if overdue_count > 0 %}color: #f87171;{% endif %}">{{ overdue_count }}</span>
                         <span class="metric-desc">Immediate action required</span>
                     </div>
@@ -82,10 +82,17 @@
             <div class="card" style="margin-bottom: 2rem;">
                 <div class="card-header">
                     <div>
-                        <h3 class="card-title"><i data-lucide="bell" style="color: var(--primary);"></i> Pending Reminders</h3>
-                        <p class="card-subtitle">Active alerts for {{ selected_vehicle.display_name }} (Current Odometer: {{ "{:,}".format(selected_vehicle.current_odometer) }} km)</p>
+                        <h3 class="card-title"><i data-lucide="bell" style="color: var(--primary);"></i> Scheduled Tasks &amp; Compliance</h3>
+                        <p class="card-subtitle">Active regulatory inspections and maintenance deadlines for {{ selected_vehicle.display_name }} (Current Odometer: {{ "{:,}".format(selected_vehicle.current_odometer) }} km)</p>
                     </div>
-                    <span class="badge-vault-blue">{{ active_reminders|length }} Pending</span>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        {% if overdue_count > 0 %}
+                            <span class="badge-subtle-rose" style="font-weight: 700; font-size: 0.8rem;">
+                                <i data-lucide="alert-octagon" style="width: 12px; height: 12px;"></i> {{ overdue_count }} Expired / Overdue
+                            </span>
+                        {% endif %}
+                        <span class="badge-vault-blue">{{ active_reminders|length }} Total Active</span>
+                    </div>
                 </div>
 
                 {% if active_reminders %}
@@ -93,21 +100,30 @@
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Task / Item</th>
+                                    <th>Task / Compliance Item</th>
                                     <th>Due Date</th>
                                     <th>Due Mileage</th>
                                     <th>Priority</th>
-                                    <th>Trigger Status</th>
+                                    <th>Compliance Status</th>
                                     <th style="text-align: right;">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for r in active_reminders %}
-                                    <tr>
+                                    <tr id="reminder-row-{{ r.id }}" {% if r.computed_status == 'Overdue' %}style="background: rgba(244, 63, 94, 0.05);"{% endif %}>
                                         <td>
-                                            <div style="font-weight: 700; color: #ffffff;">{{ r.title }}</div>
+                                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                                <span style="font-weight: 700; color: #ffffff;">{{ r.title }}</span>
+                                                {% if r.computed_status == 'Overdue' %}
+                                                    {% if r.is_insurance_reminder() %}
+                                                        <span class="badge-tag badge-subtle-rose" style="font-size: 0.7rem; font-weight: 700;">INSURANCE EXPIRED</span>
+                                                    {% elif r.is_pollution_reminder() %}
+                                                        <span class="badge-tag badge-subtle-rose" style="font-size: 0.7rem; font-weight: 700;">PUCC EXPIRED</span>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
                                             {% if r.description %}
-                                                <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 2px;">{{ r.description }}</div>
+                                                <div style="color: var(--text-secondary); font-size: 0.825rem; margin-top: 3px;">{{ r.description }}</div>
                                             {% endif %}
                                         </td>
                                         <td style="font-feature-settings: 'tnum';">
@@ -141,24 +157,26 @@
                                         </td>
                                         <td>
                                             {% if r.computed_status == 'Overdue' %}
-                                                <span class="badge-subtle-rose">
-                                                    <i data-lucide="clock-alert" style="width: 12px; height: 12px;"></i> Overdue
+                                                <span class="badge-subtle-rose" style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                                    <i data-lucide="alert-octagon" style="width: 13px; height: 13px;"></i> EXPIRED / OVERDUE
                                                 </span>
                                             {% elif r.computed_status == 'Due Soon' %}
-                                                <span class="badge-subtle-amber">
-                                                    <i data-lucide="clock" style="width: 12px; height: 12px;"></i> Due Soon
+                                                <span class="badge-subtle-amber" style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                                    <i data-lucide="clock" style="width: 13px; height: 13px;"></i> EXPIRING SOON
                                                 </span>
                                             {% else %}
-                                                <span class="badge-subtle-slate">
-                                                    <i data-lucide="calendar" style="width: 12px; height: 12px;"></i> Upcoming
+                                                <span class="badge-subtle-slate" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                                                    <i data-lucide="calendar" style="width: 13px; height: 13px;"></i> Upcoming
                                                 </span>
                                             {% endif %}
                                         </td>
                                         <td style="text-align: right;">
-                                            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                            <div style="display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
                                                 <button type="button" 
-                                                        class="btn btn-secondary btn-sm" 
-                                                        title="Review and complete reminder"
+                                                        id="complete-btn-{{ r.id }}"
+                                                        class="btn btn-primary btn-sm" 
+                                                        style="display: inline-flex; align-items: center; gap: 0.45rem;"
+                                                        title="Complete task and renew validity"
                                                         onclick="openCompleteReminderModal({
                                                             id: {{ r.id }},
                                                             title: {{ r.title|tojson }},
@@ -169,7 +187,7 @@
                                                             isPollution: {{ 'true' if r.is_pollution_reminder() else 'false' }},
                                                             currentDue: {{ (r.due_date or '')|tojson }}
                                                         })">
-                                                    <i data-lucide="check" style="width: 14px; height: 14px; color: #10b981;"></i> Complete
+                                                    <i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i> Complete &amp; Renew
                                                 </button>
                                                 <form method="POST" action="{{ url_for('reminders.delete', reminder_id=r.id) }}" onsubmit="return confirm('Delete this reminder?');">
                                                     <button type="submit" class="logout-icon-btn" title="Delete">
@@ -331,6 +349,14 @@
         </div>
 
         <form id="completeReminderForm" method="POST" action="" enctype="multipart/form-data">
+            <!-- Explicit Confirmation Prompt Banner -->
+            <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.75rem;">
+                <i data-lucide="help-circle" style="color: var(--gold-champagne); width: 22px; height: 22px; flex-shrink: 0;"></i>
+                <div style="font-size: 0.875rem; color: #ffffff;">
+                    <strong>Confirm Task Completion:</strong> Do you want to mark this reminder as completed and renew records?
+                </div>
+            </div>
+
             <!-- Summary Details Box -->
             <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
@@ -372,9 +398,9 @@
 
             <!-- Action Buttons -->
             <div style="display: flex; justify-content: flex-end; gap: 0.85rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
-                <button type="button" onclick="closeModal('completeReminderModal')" class="btn btn-secondary">Cancel</button>
+                <button type="button" onclick="closeModal('completeReminderModal')" class="btn btn-secondary">No, Cancel</button>
                 <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.45rem;">
-                    <i data-lucide="check"></i> Confirm & Complete
+                    <i data-lucide="check"></i> Yes, Confirm &amp; Complete
                 </button>
             </div>
         </form>
@@ -453,6 +479,25 @@ function toggleDocUploadDisabled(checkbox) {
         fileInput.disabled = false;
     }
 }
+
+// Auto-open modal if user clicked compliance alert from Dashboard
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const openReminderId = urlParams.get('open_reminder');
+    if (openReminderId) {
+        setTimeout(() => {
+            const btn = document.getElementById(`complete-btn-${openReminderId}`);
+            if (btn) {
+                btn.click();
+                const row = document.getElementById(`reminder-row-${openReminderId}`);
+                if (row) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    row.style.outline = '2px solid var(--gold-champagne)';
+                }
+            }
+        }, 150);
+    }
+});
 </script>
 {% endif %}
 {% endblock %}
