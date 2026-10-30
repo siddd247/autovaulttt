@@ -4,16 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}AutoVault — Automotive Management & Security Platform{% endblock %}</title>
+    <title>{% block title %}AutoVault — Automotive Management & Cyber Security Platform{% endblock %}</title>
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <!-- Stylesheet -->
+    <!-- Main Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    {% block extra_head %}{% endblock %}
 </head>
 
 <body class="theme-dark">
@@ -39,7 +40,7 @@
                     <a href="{{ url_for('dashboard.index') }}"
                         class="menu-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
                         <i data-lucide="layout-dashboard"></i>
-                        <span>Dashboard</span>
+                        <span>Overview</span>
                     </a>
                 </li>
                 <li class="menu-item">
@@ -49,20 +50,34 @@
                         <span>My Vehicle</span>
                     </a>
                 </li>
-
-                <li class="menu-category">Logs & Maintenance</li>
                 <li class="menu-item">
                     <a href="{{ url_for('fuel.index') }}"
                         class="menu-link {% if request.endpoint and 'fuel' in request.endpoint %}active{% endif %}">
                         <i data-lucide="fuel"></i>
-                        <span>Fuel & Mileage</span>
+                        <span>Fuel Analytics</span>
+                    </a>
+                </li>
+
+                <li class="menu-category">Ledger & Vault</li>
+                <li class="menu-item">
+                    <a href="{{ url_for('documents.index') }}"
+                        class="menu-link {% if request.endpoint and 'documents' in request.endpoint %}active{% endif %}">
+                        <i data-lucide="file-lock"></i>
+                        <span>Documents</span>
                     </a>
                 </li>
                 <li class="menu-item">
                     <a href="{{ url_for('maintenance.index') }}"
                         class="menu-link {% if request.endpoint and 'maintenance' in request.endpoint %}active{% endif %}">
                         <i data-lucide="wrench"></i>
-                        <span>Maintenance</span>
+                        <span>Service Records</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{{ url_for('analytics.index') }}"
+                        class="menu-link {% if request.endpoint and 'analytics' in request.endpoint %}active{% endif %}">
+                        <i data-lucide="pie-chart"></i>
+                        <span>Expenses</span>
                     </a>
                 </li>
                 <li class="menu-item">
@@ -73,26 +88,33 @@
                     </a>
                 </li>
 
-                <li class="menu-category">Vault & Intelligence</li>
+                <li class="menu-category">Security & Innovation</li>
                 <li class="menu-item">
-                    <a href="{{ url_for('documents.index') }}"
-                        class="menu-link {% if request.endpoint and 'documents' in request.endpoint %}active{% endif %}">
-                        <i data-lucide="file-lock"></i>
-                        <span>Document Vault</span>
+                    <a href="{{ url_for('modules.security') }}"
+                        class="menu-link {% if request.endpoint == 'modules.security' %}active{% endif %}">
+                        <i data-lucide="shield-alert" style="color: var(--cyber-accent);"></i>
+                        <span>Security Centre</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="{{ url_for('analytics.index') }}"
-                        class="menu-link {% if request.endpoint and 'analytics' in request.endpoint %}active{% endif %}">
-                        <i data-lucide="bar-chart-3"></i>
-                        <span>Analytics</span>
+                    <a href="{{ url_for('modules.assistant') }}"
+                        class="menu-link {% if request.endpoint == 'modules.assistant' %}active{% endif %}">
+                        <i data-lucide="sparkles" style="color: var(--secondary-cyan);"></i>
+                        <span>AI Assistant</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{{ url_for('modules.services') }}"
+                        class="menu-link {% if request.endpoint == 'modules.services' %}active{% endif %}">
+                        <i data-lucide="map-pin" style="color: var(--primary);"></i>
+                        <span>Nearby Services</span>
                     </a>
                 </li>
                 <li class="menu-item">
                     <a href="{{ url_for('modules.profile') }}"
                         class="menu-link {% if request.endpoint == 'modules.profile' %}active{% endif %}">
-                        <i data-lucide="user-cog"></i>
-                        <span>Profile & Security</span>
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
                     </a>
                 </li>
             </ul>
@@ -114,7 +136,7 @@
                         <div class="user-names">
                             <div class="user-display-name">{{ current_user.name.split()[0] }}</div>
                             <div class="user-sub-label">{% if session.get('is_demo') %}<span
-                                    style="color: var(--gold-champagne); font-weight: 700;">DEMO FLEET</span>{% else
+                                    style="color: var(--cyber-accent); font-weight: 700;">DEMO FLEET</span>{% else
                                 %}@{{ current_user.username }}{% endif %}</div>
                         </div>
                     </div>
@@ -161,7 +183,7 @@
             <div class="demo-mode-banner">
                 <div class="demo-banner-left">
                     <span class="demo-pill-badge">
-                        <span class="security-dot-pulse" style="background: var(--gold-champagne);"></span>
+                        <span class="security-dot-pulse"></span>
                         DEMO MODE
                     </span>
                     <span class="demo-banner-text">
@@ -202,10 +224,10 @@
                     <div class="footer-left">
                         <span class="footer-brand">AutoVault</span>
                         <span class="footer-sep">&bull;</span>
-                        <span>Automotive Telemetry &amp; Cyber Security Platform</span>
+                        <span>Your Car. Your Records. Your Control.</span>
                     </div>
                     <div class="footer-right">
-                        <span>B.Tech CSE Capstone System &copy; 2026</span>
+                        <span>B.Tech CSE Cyber Security Capstone &copy; 2026</span>
                     </div>
                 </div>
             </footer>
@@ -215,7 +237,7 @@
     <!-- Unauthenticated View Container -->
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    <div class="unauth-toast-container">
+    <div class="unauth-toast-container" style="position: fixed; top: 1.5rem; right: 1.5rem; z-index: 1000; max-width: 420px;">
         {% for category, message in messages %}
         <div class="alert alert-{{ category }}">
             <div class="alert-content">

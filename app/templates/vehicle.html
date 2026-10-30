@@ -5,9 +5,14 @@
 
 {% block content %}
 <div class="vehicles-page">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <!-- Top Header & Action -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
         <div>
-            <h1 style="font-size: 1.85rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">Registered Vehicles</h1>
+            <div style="display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.775rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem;">
+                <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                Multi-Vehicle Fleet Profiles
+            </div>
+            <h1 style="font-size: 2.15rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.03em;">Registered Vehicles</h1>
             <p style="color: var(--text-secondary); font-size: 0.95rem;">Manage profiles, technical specifications, and regulatory expiry dates for your vehicles.</p>
         </div>
         <button type="button" onclick="openModal('addVehicleModal')" class="btn btn-primary">
@@ -16,15 +21,16 @@
     </div>
 
     {% if vehicles %}
-        <!-- Vehicle Selector Tabs if multiple -->
+        <!-- Multi-Vehicle Selector Tabs -->
         {% if vehicles|length > 1 %}
-            <div style="display: flex; gap: 0.75rem; overflow-x: auto; margin-bottom: 1.75rem; padding-bottom: 0.5rem;">
+            <div style="display: flex; gap: 0.75rem; overflow-x: auto; margin-bottom: 1.75rem; padding-bottom: 0.35rem;">
                 {% for v in vehicles %}
                     <a href="{{ url_for('vehicle.index', selected=v.id) }}" 
                        class="btn {% if selected_vehicle and selected_vehicle.id == v.id %}btn-primary{% else %}btn-secondary{% endif %} btn-sm"
-                       style="display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap;">
+                       style="display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
                         <i data-lucide="{% if 'hunter' in v.model.lower() or 'bullet' in v.model.lower() or 'bike' in (v.variant or '').lower() %}bike{% else %}car{% endif %}" style="width: 14px; height: 14px;"></i>
-                        {{ v.display_name }} ({{ v.registration_number or 'No Reg' }})
+                        <span>{{ v.display_name }}</span>
+                        <span style="opacity: 0.75; font-size: 0.725rem;">({{ v.registration_number or 'Unregistered' }})</span>
                     </a>
                 {% endfor %}
             </div>
@@ -32,15 +38,15 @@
 
         {% if selected_vehicle %}
             <!-- Selected Vehicle Profile Card -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem;">
+            <div class="card" style="margin-bottom: 2rem; padding: 2.25rem;">
+                <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
                     <div>
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
-                            <h2 style="font-size: 1.65rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">
+                        <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
+                            <h2 style="font-size: 1.85rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.025em;">
                                 {{ selected_vehicle.manufacturer }} {{ selected_vehicle.model }}
                             </h2>
                             {% if selected_vehicle.registration_number %}
-                                <span class="badge-vault-blue">{{ selected_vehicle.registration_number }}</span>
+                                <span class="badge-vault-blue" style="font-weight: 800; font-size: 0.825rem; letter-spacing: 0.06em;">{{ selected_vehicle.registration_number }}</span>
                             {% endif %}
                         </div>
                         <p style="color: var(--text-secondary); font-size: 0.9rem;">
@@ -54,24 +60,24 @@
                         <form method="POST" action="{{ url_for('vehicle.delete', vehicle_id=selected_vehicle.id) }}" 
                               onsubmit="return confirm('Are you sure you want to permanently remove this vehicle from your vault?');">
                             <button type="submit" class="btn btn-outline-danger btn-sm">
-                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Remove Vehicle
+                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Remove
                             </button>
                         </form>
                     </div>
                 </div>
 
-                <!-- Vehicle Details Grid -->
+                <!-- Vehicle Details Telemetry Grid -->
                 <div class="telemetry-spec-grid">
                     <div class="telemetry-spec-card">
-                        <span class="telemetry-spec-label">Registration Number</span>
-                        <div class="telemetry-spec-val">
+                        <span class="telemetry-spec-label">Registration Plate</span>
+                        <div class="telemetry-spec-val" style="color: #FFFFFF;">
                             {{ selected_vehicle.registration_number or 'Not Provided' }}
                         </div>
                     </div>
 
                     <div class="telemetry-spec-card">
                         <span class="telemetry-spec-label">Current Odometer</span>
-                        <div class="telemetry-spec-val" style="color: var(--gold-champagne); font-feature-settings: 'tnum';">
+                        <div class="telemetry-spec-val" style="color: var(--secondary-cyan); font-feature-settings: 'tnum'; font-size: 1.35rem;">
                             {{ "{:,}".format(selected_vehicle.current_odometer) }} km
                         </div>
                     </div>
@@ -104,7 +110,7 @@
                             <span class="{% if ins_status.status == 'Expired' %}badge-subtle-rose{% elif ins_status.status == 'Expiring Soon' %}badge-subtle-amber{% else %}badge-subtle-green{% endif %}">
                                 {{ ins_status.status }}
                             </span>
-                            <span style="font-size: 0.9rem; color: var(--text-secondary);">{{ ins_status.text }}</span>
+                            <span style="font-size: 0.85rem; color: var(--text-secondary);">{{ ins_status.text }}</span>
                         </div>
                     </div>
 
@@ -115,7 +121,7 @@
                             <span class="{% if pol_status.status == 'Expired' %}badge-subtle-rose{% elif pol_status.status == 'Expiring Soon' %}badge-subtle-amber{% else %}badge-subtle-green{% endif %}">
                                 {{ pol_status.status }}
                             </span>
-                            <span style="font-size: 0.9rem; color: var(--text-secondary);">{{ pol_status.text }}</span>
+                            <span style="font-size: 0.85rem; color: var(--text-secondary);">{{ pol_status.text }}</span>
                         </div>
                     </div>
                 </div>

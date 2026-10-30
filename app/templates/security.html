@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}Security Centre — AutoVault Defense in Depth{% endblock %}
+{% block header_title %}Cyber Security Command Centre{% endblock %}
+
+{% block content %}
+<div class="security-page" style="max-width: 1200px; margin: 0 auto;">
+    <!-- Security Centre Hero Banner -->
+    <div style="background: linear-gradient(135deg, rgba(22, 36, 56, 0.9) 0%, rgba(13, 21, 35, 0.95) 100%); border: 1px solid rgba(233, 185, 90, 0.35); border-radius: var(--radius-xl); padding: 2.75rem 2.5rem; margin-bottom: 2.5rem; position: relative; overflow: hidden; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(233, 185, 90, 0.15);">
+        <div style="position: absolute; right: -50px; top: -50px; width: 350px; height: 350px; border-radius: 50%; background: radial-gradient(circle, rgba(233, 185, 90, 0.12), transparent 70%); pointer-events: none;"></div>
+        
+        <div style="position: relative; z-index: 2; max-width: 820px;">
+            <div style="display: inline-flex; align-items: center; gap: 0.55rem; padding: 0.35rem 0.95rem; border-radius: var(--radius-full); background: rgba(233, 185, 90, 0.15); border: 1px solid rgba(233, 185, 90, 0.4); color: var(--cyber-accent); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.25rem;">
+                <span class="security-dot-pulse"></span>
+                B.Tech Computer Science &amp; Engineering (Cyber Security) Capstone
+            </div>
+            <h1 style="font-size: clamp(2.2rem, 3.8vw, 3rem); font-weight: 800; color: #FFFFFF; letter-spacing: -0.03em; margin-bottom: 1rem; line-height: 1.15;">
+                Built with Defense in Depth.
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 1.05rem; line-height: 1.65; margin-bottom: 1.75rem;">
+                Security is not an afterthought. AutoVault incorporates multiple layers of application and data protection to help safeguard user information, vehicle ownership papers, and operational telemetry.
+            </p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <span class="badge-vault-blue" style="padding: 0.45rem 1rem; font-size: 0.8rem;">
+                    <i data-lucide="shield-check" style="width: 13px; height: 13px; vertical-align: middle;"></i> 6 Verified Security Controls
+                </span>
+                <span class="badge-vault-amber" style="padding: 0.45rem 1rem; font-size: 0.8rem;">
+                    <i data-lucide="lock" style="width: 13px; height: 13px; vertical-align: middle;"></i> Zero-Trust Tenancy
+                </span>
+                <span class="badge-tag" style="padding: 0.45rem 1rem; font-size: 0.8rem;">
+                    <i data-lucide="file-check" style="width: 13px; height: 13px; vertical-align: middle;"></i> Quarantined Storage
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Defense in Depth Architecture Diagram -->
+    <div class="card" style="margin-bottom: 3rem; padding: 2.25rem;">
+        <div class="card-header" style="margin-bottom: 1.75rem;">
+            <div>
+                <h3 class="card-title" style="color: #FFFFFF; font-size: 1.35rem;">
+                    <i data-lucide="layers" style="color: var(--cyber-accent);"></i> Defense-in-Depth Layered Architecture
+                </h3>
+                <p class="card-subtitle">Comprehensive request lifecycle protection from entry boundary to database disk</p>
+            </div>
+            <span class="badge-vault-amber">System Topography</span>
+        </div>
+
+        <div class="defense-layers" style="display: flex; flex-direction: column; gap: 1rem;">
+            <!-- Layer 1 -->
+            <div style="background: rgba(8, 13, 22, 0.6); border: 1px solid rgba(50, 139, 255, 0.3); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: rgba(50, 139, 255, 0.15); border: 1px solid rgba(50, 139, 255, 0.35); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="globe"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: 800; color: #FFFFFF; font-size: 0.95rem;">Layer 1 &bull; Presentation &amp; View Rendering</div>
+                        <div style="color: var(--text-secondary); font-size: 0.825rem; margin-top: 0.2rem;">Jinja2 Contextual Auto-Escaping (XSS Mitigation) &bull; Clean Header Forwarding</div>
+                    </div>
+                </div>
+                <span class="badge-vault-blue">Client Edge</span>
+            </div>
+
+            <!-- Layer 2 -->
+            <div style="background: rgba(8, 13, 22, 0.6); border: 1px solid rgba(57, 213, 242, 0.3); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: rgba(57, 213, 242, 0.15); border: 1px solid rgba(57, 213, 242, 0.35); color: var(--secondary-cyan); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="key-round"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: 800; color: #FFFFFF; font-size: 0.95rem;">Layer 2 &bull; Identity &amp; Session Ingestion</div>
+                        <div style="color: var(--text-secondary); font-size: 0.825rem; margin-top: 0.2rem;">Werkzeug PBKDF2/scrypt Key Derivation &bull; Anti-Enumeration Uniform Error Status</div>
+                    </div>
+                </div>
+                <span class="badge-vault-blue">Authentication</span>
+            </div>
+
+            <!-- Layer 3 -->
+            <div style="background: rgba(8, 13, 22, 0.6); border: 1px solid rgba(233, 185, 90, 0.3); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: rgba(233, 185, 90, 0.15); border: 1px solid rgba(233, 185, 90, 0.35); color: var(--cyber-accent); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="shield-alert"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: 800; color: #FFFFFF; font-size: 0.95rem;">Layer 3 &bull; Object Ownership &amp; Authorization Gateway</div>
+                        <div style="color: var(--text-secondary); font-size: 0.825rem; margin-top: 0.2rem;">Insecure Direct Object Reference (IDOR) Protection &bull; Strict HTTP 403 Forbidden Abort</div>
+                    </div>
+                </div>
+                <span class="badge-vault-amber">Tenancy Boundary</span>
+            </div>
+
+            <!-- Layer 4 -->
+            <div style="background: rgba(8, 13, 22, 0.6); border: 1px solid rgba(53, 212, 154, 0.3); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: rgba(53, 212, 154, 0.15); border: 1px solid rgba(53, 212, 154, 0.35); color: var(--success); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="database"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: 800; color: #FFFFFF; font-size: 0.95rem;">Layer 4 &bull; ORM Data Persistence &amp; Document Quarantine</div>
+                        <div style="color: var(--text-secondary); font-size: 0.825rem; margin-top: 0.2rem;">SQLAlchemy Parameterized Queries (SQLi Immunity) &bull; Isolated Storage Outside Web Root</div>
+                    </div>
+                </div>
+                <span class="badge-vault-green">Storage Vault</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- The Six Specific Verified Security Mechanisms -->
+    <div style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.65rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.02em; margin-bottom: 0.5rem;">
+            Six Pillars of AutoVault Security Architecture
+        </h2>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 2rem;">
+            Each defense mechanism is implemented directly in the core codebase and verifiable via automated unit tests.
+        </p>
+    </div>
+
+    <div class="security-cards-grid">
+        <!-- 1. Cryptographic Hashing -->
+        <div class="security-card-item">
+            <div class="security-card-head">
+                <div class="security-icon-circle">
+                    <i data-lucide="key-round"></i>
+                </div>
+                <div>
+                    <h4>A. Cryptographic Hashing</h4>
+                    <span style="font-size: 0.725rem; color: var(--cyber-accent); font-weight: 700;">CREDENTIAL INTEGRITY</span>
+                </div>
+            </div>
+            <p style="margin-bottom: 1.25rem;">
+                Plaintext passwords are never committed to storage. Passwords are automatically salted and processed using Werkzeug's PBKDF2/scrypt password hashing functionality before database persistence.
+            </p>
+            <div style="background: var(--bg-inset); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem; font-family: monospace; font-size: 0.75rem; color: #72B0FF; line-height: 1.5;">
+                <div style="color: var(--text-muted);">// app/models/user.py</div>
+                <div>def set_password(self, password):</div>
+                <div style="padding-left: 1rem;">self.password_hash = generate_password_hash(password)</div>
+            </div>
+        </div>
+
+        <!-- 2. IDOR Access Controls -->
+        <div class="security-card-item">
+            <div class="security-card-head">
+                <div class="security-icon-circle">
+                    <i data-lucide="shield-alert"></i>
+                </div>
+                <div>
+                    <h4>B. IDOR Access Controls</h4>
+                    <span style="font-size: 0.725rem; color: var(--cyber-accent); font-weight: 700;">OBJECT TENANCY ENFORCEMENT</span>
+                </div>
+            </div>
+            <p style="margin-bottom: 1.25rem;">
+                Database lookups strictly enforce user ownership. Attempts to access another user's protected objects (vehicles, fuel logs, service records, reminders, documents) through manipulated identifiers return HTTP 403 Forbidden responses.
+            </p>
+            <div style="background: var(--bg-inset); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem; font-family: monospace; font-size: 0.75rem; color: #35D49A; line-height: 1.5;">
+                <div style="color: var(--text-muted);">// IDOR Tenancy Verification Check</div>
+                <div>if object.vehicle.user_id != session['user_id']:</div>
+                <div style="padding-left: 1rem; color: #FF6474;">abort(403)  # HTTP 403 Forbidden</div>
+            </div>
+        </div>
+
+        <!-- 3. SQL Injection Protection via ORM -->
+        <div class="security-card-item">
+            <div class="security-card-head">
+                <div class="security-icon-circle">
+                    <i data-lucide="database"></i>
+                </div>
+                <div>
+                    <h4>C. SQLi Protection via ORM</h4>
+                    <span style="font-size: 0.725rem; color: var(--cyber-accent); font-weight: 700;">PARAMETERIZED QUERY CONSTRUCTION</span>
+                </div>
+            </div>
+            <p style="margin-bottom: 1.25rem;">
+                Database operations use SQLAlchemy ORM and parameterized queries to reduce SQL injection vulnerabilities. Inputs are treated as pure data literals and never concatenated directly into raw SQL string expressions.
+            </p>
+            <div style="background: var(--bg-inset); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem; font-family: monospace; font-size: 0.75rem; color: #39D5F2; line-height: 1.5;">
+                <div style="color: var(--text-muted);">// Parameterized ORM Invocation</div>
+                <div>Vehicle.query.filter_by(</div>
+                <div style="padding-left: 1rem;">id=vehicle_id, user_id=current_user.id</div>
+                <div>).first_or_404()</div>
+            </div>
+        </div>
+
+        <!-- 4. Anti-Enumeration Logic -->
+        <div class="security-card-item">
+            <div class="security-card-head">
+                <div class="security-icon-circle">
+                    <i data-lucide="user-x"></i>
+                </div>
+                <div>
+                    <h4>D. Anti-Enumeration Logic</h4>
+                    <span style="font-size: 0.725rem; color: var(--cyber-accent); font-weight: 700;">UNIFORM FAILURE HANDLER</span>
+                </div>
+            </div>
+            <p style="margin-bottom: 1.25rem;">
+                Authentication failure handlers return uniform responses, making it substantially more difficult to discover registered usernames or email addresses through error-message differences or timing discrepancies.
+            </p>
+            <div style="background: var(--bg-inset); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem; font-family: monospace; font-size: 0.75rem; color: #FFB84D; line-height: 1.5;">
+                <div style="color: var(--text-muted);">// Uniform Status Response</div>
+                <div>if not user or not user.check_password(password):</div>
+                <div style="padding-left: 1rem;">flash('Invalid username/email or password.', 'danger')</div>
+            </div>
+        </div>
+
+        <!-- 5. Isolated Document Quarantining -->
+        <div class="security-card-item">
+            <div class="security-card-head">
+                <div class="security-icon-circle">
+                    <i data-lucide="file-check"></i>
+                </div>
+                <div>
+                    <h4>E. Isolated Quarantining</h4>
+                    <span style="font-size: 0.725rem; color: var(--cyber-accent); font-weight: 700;">SECURE GATEWAY SERVING</span>
+                </div>
+            </div>
+            <p style="margin-bottom: 1.25rem;">
+                Uploaded documents are stored outside the public web root (in <code>instance/uploads/documents/</code>), with strict extension whitelisting (.pdf, .png, .jpg, .webp), cryptographic UUID renaming, and authenticated gateway serving.
+            </p>
+            <div style="background: var(--bg-inset); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem; font-family: monospace; font-size: 0.75rem; color: #E9B95A; line-height: 1.5;">
+                <div style="color: var(--text-muted);">// Quarantine Renaming & Delivery</div>
+                <div>safe_name = f"{uuid.uuid4().hex}.{ext}"</div>
+                <div>send_from_directory(upload_dir, doc.stored_filename)</div>
+            </div>
+        </div>
+
+        <!-- 6. XSS Output Sanitization -->
+        <div class="security-card-item">
+            <div class="security-card-head">
+                <div class="security-icon-circle">
+                    <i data-lucide="binary"></i>
+                </div>
+                <div>
+                    <h4>F. XSS Output Sanitization</h4>
+                    <span style="font-size: 0.725rem; color: var(--cyber-accent); font-weight: 700;">CONTEXTUAL HTML ESCAPING</span>
+                </div>
+            </div>
+            <p style="margin-bottom: 1.25rem;">
+                User-supplied information displayed in the interface is HTML-escaped through Jinja2 contextual escaping to help prevent stored and reflected Cross-Site Scripting (XSS) attacks across vehicle notes, filenames, and workshop descriptions.
+            </p>
+            <div style="background: var(--bg-inset); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem; font-family: monospace; font-size: 0.75rem; color: #C084FC; line-height: 1.5;">
+                <div style="color: var(--text-muted);">// Jinja2 Contextual Auto-Escaping</div>
+                <div>&lt;td&gt;&#123;&#123; record.description &#125;&#125;&lt;/td&gt;</div>
+                <div style="color: var(--text-muted);">&lt;!-- &lt;script&gt; renders as &amp;lt;script&amp;gt; --&gt;</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,51 +1,58 @@
 {% extends "base.html" %}
 
-{% block title %}Sign In — AutoVault Cockpit{% endblock %}
+{% block title %}Sign In — AutoVault Executive Digital Cockpit{% endblock %}
 
 {% block guest_content %}
 <div class="auth-page-container">
     <div class="auth-card">
         <div class="auth-header">
             <a href="{{ url_for('dashboard.landing') }}" class="auth-brand">
-                <div class="brand-icon-shield">
-                    <i data-lucide="shield-check"></i>
+                <div class="brand-icon-shield" style="width: 44px; height: 44px;">
+                    <i data-lucide="shield-check" style="width: 22px; height: 22px;"></i>
                 </div>
                 <div class="brand-text-group" style="text-align: left;">
                     <span class="brand-name">AutoVault</span>
                     <span class="brand-badge-version">SYSTEM v1.0</span>
                 </div>
             </a>
-            <h2 class="auth-title">Welcome Back</h2>
-            <p class="auth-desc">Authenticate to access your secure vehicle dashboard</p>
+            <h2 class="auth-title">Welcome to Cockpit</h2>
+            <p class="auth-desc">Authenticate your identity to enter your secure vehicle vault</p>
         </div>
 
         <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
             <div class="form-group">
                 <label for="identifier" class="form-label">Username or Email</label>
-                <input type="text" id="identifier" name="identifier" class="form-control" 
-                       placeholder="e.g. shubham or user@example.com" value="{{ identifier or '' }}" required autofocus>
+                <div style="position: relative;">
+                    <input type="text" id="identifier" name="identifier" class="form-control" 
+                           placeholder="e.g. demo_driver or driver@vault.com" value="{{ identifier or '' }}" required autofocus>
+                </div>
             </div>
 
             <div class="form-group">
-                <label for="password" class="form-label">Password</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
+                    <label for="password" class="form-label" style="margin-bottom: 0;">Password</label>
+                    <span style="font-size: 0.725rem; color: var(--secondary-cyan);">Salted PBKDF2/scrypt</span>
+                </div>
                 <input type="password" id="password" name="password" class="form-control" 
                        placeholder="••••••••" required>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-block" style="padding: 0.85rem; margin-top: 1.75rem;">
+            <button type="submit" class="btn btn-primary btn-block" style="padding: 0.85rem; margin-top: 1.5rem; font-size: 0.95rem;">
                 <i data-lucide="log-in" style="width: 18px; height: 18px;"></i> Sign In to Cockpit
             </button>
-            <div style="text-align: center; margin: 1.25rem 0 0.5rem;">
-                <span style="font-size: 0.8rem; color: var(--text-muted);">— OR —</span>
+
+            <div style="text-align: center; margin: 1.25rem 0 0.75rem;">
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em;">— Quick Evaluator Access —</span>
             </div>
-            <a href="{{ url_for('auth.demo') }}" class="btn btn-outline-gold btn-block" style="padding: 0.75rem; text-align: center; justify-content: center;">
-                <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> View Live Demo Fleet (Instant Access)
+
+            <a href="{{ url_for('auth.demo') }}" class="btn btn-outline-gold btn-block" style="padding: 0.75rem; text-align: center; justify-content: center; font-size: 0.885rem;">
+                <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> Launch Live Demo Fleet (Instant)
             </a>
         </form>
 
         <div class="auth-footer">
-            <p>Don't have an account yet? <a href="{{ url_for('auth.register') }}">Create an Account</a></p>
-            <p style="margin-top: 0.65rem;"><a href="{{ url_for('dashboard.landing') }}" style="color: var(--text-muted); font-size: 0.8rem;">&larr; Back to Home</a></p>
+            <p>New to AutoVault? <a href="{{ url_for('auth.register') }}" style="font-weight: 700; color: var(--secondary-cyan);">Create an Account</a></p>
+            <p style="margin-top: 0.75rem;"><a href="{{ url_for('dashboard.landing') }}" style="color: var(--text-muted); font-size: 0.8rem;">&larr; Back to AutoVault Home</a></p>
         </div>
     </div>
 </div>

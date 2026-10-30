@@ -1,14 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}Secure Document Vault — AutoVault{% endblock %}
-{% block header_title %}Secure Document Vault{% endblock %}
+{% block title %}Digital Document Vault — AutoVault Security{% endblock %}
+{% block header_title %}Quarantined Document Vault{% endblock %}
 
 {% block content %}
 <div class="documents-page">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <!-- Top Header & Action -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
         <div>
-            <h1 style="font-size: 1.85rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">Document Vault</h1>
-            <p style="color: var(--text-secondary); font-size: 0.95rem;">Quarantined, ownership-verified digital repository for vehicle compliance certificates and invoices.</p>
+            <div style="display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.775rem; font-weight: 700; color: var(--cyber-accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem;">
+                <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                Air-Gapped &bull; IDOR-Guarded Storage
+            </div>
+            <h1 style="font-size: 2.15rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.03em;">Digital Document Vault</h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Quarantined, cryptographic repository for vehicle titles, insurance schedules, and compliance certificates.</p>
         </div>
         {% if selected_vehicle %}
             <button type="button" onclick="openModal('uploadDocumentModal')" class="btn btn-primary">
@@ -18,20 +23,23 @@
     </div>
 
     {% if vehicles %}
-        <!-- Vehicle Selector Tabs if multiple -->
+        <!-- Multi-Vehicle Selector Tabs -->
         {% if vehicles|length > 1 %}
-            <div style="display: flex; gap: 0.75rem; overflow-x: auto; margin-bottom: 1.75rem; padding-bottom: 0.5rem;">
+            <div style="display: flex; gap: 0.75rem; overflow-x: auto; margin-bottom: 1.75rem; padding-bottom: 0.35rem;">
                 {% for v in vehicles %}
                     <a href="{{ url_for('documents.index', selected=v.id) }}" 
-                       class="btn {% if selected_vehicle and selected_vehicle.id == v.id %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
-                        <i data-lucide="{% if 'hunter' in v.model.lower() or 'bullet' in v.model.lower() or 'bike' in (v.variant or '').lower() %}bike{% else %}car{% endif %}" style="width: 14px; height: 14px;"></i> {{ v.display_name }} ({{ v.registration_number or 'No Reg' }})
+                       class="btn {% if selected_vehicle and selected_vehicle.id == v.id %}btn-primary{% else %}btn-secondary{% endif %} btn-sm"
+                       style="white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="{% if 'hunter' in v.model.lower() or 'bullet' in v.model.lower() or 'bike' in (v.variant or '').lower() %}bike{% else %}car{% endif %}" style="width: 14px; height: 14px;"></i>
+                        <span>{{ v.display_name }}</span>
+                        <span style="opacity: 0.75; font-size: 0.725rem;">({{ v.registration_number or 'Unregistered' }})</span>
                     </a>
                 {% endfor %}
             </div>
         {% endif %}
 
         {% if selected_vehicle %}
-            <!-- Metric Cards for Document Vault -->
+            <!-- Metric Cards for Vault -->
             <div class="metric-grid">
                 <div class="metric-card">
                     <div class="metric-info">
@@ -46,15 +54,15 @@
 
                 <div class="metric-card">
                     <div class="metric-info">
-                        <span class="metric-label">Vault Storage Used</span>
+                        <span class="metric-label">Quarantine Storage</span>
                         <span class="metric-value">
                             {% if total_size < 1024 * 1024 %}
-                                {{ "{:,.1f}".format(total_size / 1024) }} <small style="font-size: 0.85rem; color: #94a3b8;">KB</small>
+                                {{ "{:,.1f}".format(total_size / 1024) }} <small style="font-size: 0.85rem; color: var(--text-muted);">KB</small>
                             {% else %}
-                                {{ "{:,.1f}".format(total_size / (1024 * 1024)) }} <small style="font-size: 0.85rem; color: #94a3b8;">MB</small>
+                                {{ "{:,.1f}".format(total_size / (1024 * 1024)) }} <small style="font-size: 0.85rem; color: var(--text-muted);">MB</small>
                             {% endif %}
                         </span>
-                        <span class="metric-desc">Quarantined storage size</span>
+                        <span class="metric-desc">Isolated on secure disk</span>
                     </div>
                     <div class="metric-icon-box icon-purple">
                         <i data-lucide="hard-drive"></i>
@@ -63,9 +71,9 @@
 
                 <div class="metric-card">
                     <div class="metric-info">
-                        <span class="metric-label">Access Control</span>
-                        <span class="metric-value" style="color: #34d399; font-size: 1.35rem;">Isolated</span>
-                        <span class="metric-desc">Strict IDOR session checks</span>
+                        <span class="metric-label">Access Boundary</span>
+                        <span class="metric-value" style="color: var(--success); font-size: 1.45rem;">Zero-Trust</span>
+                        <span class="metric-desc">Strict IDOR session validation</span>
                     </div>
                     <div class="metric-icon-box icon-emerald">
                         <i data-lucide="shield-check"></i>
@@ -74,8 +82,8 @@
 
                 <div class="metric-card">
                     <div class="metric-info">
-                        <span class="metric-label">Supported Formats</span>
-                        <span class="metric-value" style="font-size: 1.2rem;">PDF &bull; Images</span>
+                        <span class="metric-label">Allowed Formats</span>
+                        <span class="metric-value" style="font-size: 1.25rem;">PDF &bull; Images</span>
                         <span class="metric-desc">PDF, PNG, JPG, WEBP (Max 16MB)</span>
                     </div>
                     <div class="metric-icon-box icon-cyan">
@@ -84,14 +92,16 @@
                 </div>
             </div>
 
-            <!-- Documents List / Grid -->
+            <!-- Documents Table & Gallery -->
             <div class="card">
                 <div class="card-header">
                     <div>
-                        <h3 class="card-title"><i data-lucide="folder-lock" style="color: var(--primary);"></i> Vault Records</h3>
-                        <p class="card-subtitle">Encrypted references and paperwork for {{ selected_vehicle.display_name }}</p>
+                        <h3 class="card-title">
+                            <i data-lucide="folder-lock" style="color: var(--primary);"></i> Vault Records for {{ selected_vehicle.display_name }}
+                        </h3>
+                        <p class="card-subtitle">Encrypted references and paperwork strictly verified against user session</p>
                     </div>
-                    <span class="badge-vault-blue">{{ documents|length }} Files</span>
+                    <span class="badge-vault-blue">{{ documents|length }} Files Guarded</span>
                 </div>
 
                 {% if documents %}
@@ -102,7 +112,7 @@
                                     <th>Document Type</th>
                                     <th>File Name</th>
                                     <th>Upload Timestamp</th>
-                                    <th>Size</th>
+                                    <th>File Size</th>
                                     <th>Security Status</th>
                                     <th style="text-align: right;">Actions</th>
                                 </tr>
@@ -111,35 +121,57 @@
                                 {% for d in documents %}
                                     <tr>
                                         <td>
-                                            <span class="badge-vault-blue" style="font-weight: 700;">{{ d.document_type }}</span>
+                                            {% if 'Registration' in d.document_type or 'RC' in d.document_type %}
+                                                <span class="badge-vault-blue" style="font-weight: 700;">
+                                                    <i data-lucide="car" style="width: 12px; height: 12px; vertical-align: middle;"></i> {{ d.document_type }}
+                                                </span>
+                                            {% elif 'Insurance' in d.document_type %}
+                                                <span class="badge-vault-amber" style="font-weight: 700;">
+                                                    <i data-lucide="shield" style="width: 12px; height: 12px; vertical-align: middle;"></i> {{ d.document_type }}
+                                                </span>
+                                            {% elif 'Pollution' in d.document_type or 'PUCC' in d.document_type %}
+                                                <span class="badge-vault-green" style="font-weight: 700;">
+                                                    <i data-lucide="leaf" style="width: 12px; height: 12px; vertical-align: middle;"></i> {{ d.document_type }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge-tag" style="font-weight: 700;">
+                                                    <i data-lucide="file-text" style="width: 12px; height: 12px; vertical-align: middle;"></i> {{ d.document_type }}
+                                                </span>
+                                            {% endif %}
                                         </td>
                                         <td>
-                                            <div style="font-weight: 600; color: #ffffff; display: flex; align-items: center; gap: 0.5rem;">
-                                                <i data-lucide="file" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+                                            <div style="font-weight: 600; color: #FFFFFF; display: flex; align-items: center; gap: 0.5rem;">
+                                                <i data-lucide="file" style="width: 15px; height: 15px; color: var(--secondary-cyan);"></i>
                                                 <span>{{ d.original_filename }}</span>
                                             </div>
                                         </td>
-                                        <td style="font-size: 0.85rem; color: var(--text-muted); font-feature-settings: 'tnum';">
-                                            {{ d.uploaded_at.strftime('%Y-%m-%d %H:%M') }}
+                                        <td style="color: var(--text-muted); font-size: 0.825rem; font-feature-settings: 'tnum';">
+                                            {{ d.uploaded_at.strftime('%d %b %Y, %H:%M') }}
                                         </td>
-                                        <td style="font-size: 0.85rem; font-feature-settings: 'tnum';">
-                                            {{ d.formatted_size() }}
+                                        <td style="font-feature-settings: 'tnum'; font-size: 0.825rem; color: var(--text-secondary);">
+                                            {% if d.file_size < 1024 * 1024 %}
+                                                {{ "{:,.1f}".format(d.file_size / 1024) }} KB
+                                            {% else %}
+                                                {{ "{:,.1f}".format(d.file_size / (1024 * 1024)) }} MB
+                                            {% endif %}
                                         </td>
                                         <td>
-                                            <span class="badge-vault-green" style="font-size: 0.75rem;">
-                                                <i data-lucide="lock" style="width: 10px; height: 10px;"></i> Quarantined
+                                            <span class="badge-vault-green" style="font-size: 0.725rem; font-weight: 700;">
+                                                <i data-lucide="check" style="width: 10px; height: 10px; vertical-align: middle;"></i> QUARANTINED
                                             </span>
                                         </td>
                                         <td style="text-align: right;">
-                                            <div style="display: flex; gap: 0.45rem; justify-content: flex-end;">
-                                                <a href="{{ url_for('documents.view', doc_id=d.id) }}" target="_blank" class="btn btn-secondary btn-sm" title="View Document">
-                                                    <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View
+                                            <div style="display: inline-flex; gap: 0.4rem; align-items: center;">
+                                                <button type="button" onclick="previewVaultDoc('{{ url_for('documents.view', doc_id=d.id) }}', '{{ d.original_filename }}', '{{ 'pdf' if 'pdf' in d.original_filename.lower() else 'image' }}')" 
+                                                        class="btn btn-secondary btn-sm" title="Preview document inside secure modal">
+                                                    <i data-lucide="eye" style="width: 13px; height: 13px;"></i> View
+                                                </button>
+                                                <a href="{{ url_for('documents.download', doc_id=d.id) }}" class="btn btn-secondary btn-sm" title="Download verified file">
+                                                    <i data-lucide="download" style="width: 13px; height: 13px;"></i>
                                                 </a>
-                                                <a href="{{ url_for('documents.download', doc_id=d.id) }}" class="btn btn-secondary btn-sm" title="Download Document">
-                                                    <i data-lucide="download" style="width: 14px; height: 14px;"></i>
-                                                </a>
-                                                <form method="POST" action="{{ url_for('documents.delete', doc_id=d.id) }}" onsubmit="return confirm('Permanently remove this document from vault?');" style="display: inline;">
-                                                    <button type="submit" class="logout-icon-btn" title="Delete">
+                                                <form method="POST" action="{{ url_for('documents.delete', doc_id=d.id) }}" 
+                                                      onsubmit="return confirm('Permanently remove this quarantined file from your vault?');" style="display: inline-block;">
+                                                    <button type="submit" class="logout-icon-btn" title="Delete document">
                                                         <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                                                     </button>
                                                 </form>
@@ -151,15 +183,22 @@
                         </table>
                     </div>
                 {% else %}
-                    <div style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
-                        <i data-lucide="shield-alert" style="width: 48px; height: 48px; opacity: 0.4; margin-bottom: 1rem;"></i>
-                        <h4 style="color: #ffffff; margin-bottom: 0.5rem;">Vault Storage Empty</h4>
-                        <p style="font-size: 0.9rem; max-width: 440px; margin: 0 auto 1.5rem;">Store your Registration Certificate (RC), Insurance Schedule, Pollution Cards, and Service Invoices safely outside public directories.</p>
+                    <div style="text-align: center; padding: 3.5rem 1.5rem; color: var(--text-secondary);">
+                        <i data-lucide="file-lock" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                        <p style="font-size: 1.1rem; color: #FFFFFF; font-weight: 700; margin-bottom: 0.35rem;">Vault is Empty</p>
+                        <p style="font-size: 0.875rem; max-width: 440px; margin: 0 auto 1.75rem;">Upload your Registration Certificate (RC), Insurance policy, or PUCC to maintain quarantined digital backups.</p>
                         <button type="button" onclick="openModal('uploadDocumentModal')" class="btn btn-primary btn-sm">
-                            <i data-lucide="upload"></i> Upload First Document
+                            <i data-lucide="file-up"></i> Upload First Document
                         </button>
                     </div>
                 {% endif %}
+            </div>
+
+        {% else %}
+            <div class="empty-state-box">
+                <i data-lucide="car" style="width: 32px; height: 32px; color: var(--primary); margin-bottom: 1rem;"></i>
+                <h3 class="empty-state-title">No vehicle selected</h3>
+                <p class="empty-state-desc">Select or add a vehicle to access its digital document repository.</p>
             </div>
         {% endif %}
 
@@ -168,22 +207,22 @@
             <div class="empty-state-icon">
                 <i data-lucide="car" style="width: 32px; height: 32px;"></i>
             </div>
-            <h2 class="empty-state-title">No Vehicles Registered</h2>
-            <p class="empty-state-desc">You need to register a vehicle before storing sensitive documents.</p>
-            <a href="{{ url_for('vehicle.index') }}" class="btn btn-primary">
-                <i data-lucide="plus"></i> Add Vehicle
+            <h2 class="empty-state-title">Your garage is empty</h2>
+            <p class="empty-state-desc">Register a vehicle in AutoVault to unlock quarantined document storage.</p>
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">
+                <i data-lucide="plus"></i> Add Vehicle in Cockpit
             </a>
         </div>
     {% endif %}
 </div>
 
-{% if selected_vehicle %}
 <!-- Modal: Upload Document -->
+{% if selected_vehicle %}
 <div id="uploadDocumentModal" class="modal-overlay">
     <div class="modal-container">
         <div class="modal-header">
             <h3 class="modal-title">
-                <i data-lucide="shield-check" style="color: var(--primary);"></i> Secure Document Ingestion — {{ selected_vehicle.display_name }}
+                <i data-lucide="file-up" style="color: var(--primary);"></i> Ingest Document to Vault
             </h3>
             <button class="modal-close-btn" onclick="closeModal('uploadDocumentModal')">&times;</button>
         </div>
@@ -191,40 +230,86 @@
             <input type="hidden" name="vehicle_id" value="{{ selected_vehicle.id }}">
 
             <div class="form-group">
-                <label class="form-label" for="doc_type">Document Classification *</label>
-                <select id="doc_type" name="document_type" class="form-control" required>
+                <label class="form-label" for="document_type">Document Category *</label>
+                <select id="document_type" name="document_type" class="form-control" required>
                     <option value="Registration Certificate (RC)">Registration Certificate (RC)</option>
-                    <option value="Insurance Policy">Insurance Policy / Cover Note</option>
+                    <option value="Insurance Policy">Insurance Policy Schedule</option>
                     <option value="Pollution Certificate (PUCC)">Pollution Under Control (PUCC)</option>
+                    <option value="Driving Licence">Driving Licence</option>
+                    <option value="Vehicle Manual">Owner / Vehicle Manual</option>
                     <option value="Service Invoice">Workshop / Service Invoice</option>
-                    <option value="Extended Warranty">Extended Warranty Schedule</option>
-                    <option value="Purchase Invoice">Purchase Bill &amp; Delivery Note</option>
                     <option value="Other Document">Other Automotive Document</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="document_file">Select File (PDF, PNG, JPG, JPEG, WEBP) *</label>
-                <input type="file" id="document_file" name="document_file" class="form-control" 
-                       accept=".pdf,.png,.jpg,.jpeg,.webp" required style="padding: 0.6rem;">
-                <span class="form-text">Max upload file size is 16 MB. Files are stored with cryptographic UUID names outside public web paths.</span>
+                <label class="form-label" for="document_file">Select Document File *</label>
+                <div style="border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: 2rem; text-align: center; background: var(--bg-inset); cursor: pointer;" onclick="document.getElementById('document_file').click()">
+                    <i data-lucide="upload-cloud" style="width: 36px; height: 36px; color: var(--secondary-cyan); margin-bottom: 0.75rem;"></i>
+                    <p style="font-weight: 700; color: #FFFFFF; font-size: 0.95rem; margin-bottom: 0.25rem;">Click to browse or drag file here</p>
+                    <p style="font-size: 0.775rem; color: var(--text-muted);">Supported formats: PDF, PNG, JPG, JPEG, WEBP (Max 16 MB)</p>
+                    <div id="selectedFileName" style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--cyber-accent); font-weight: 700;"></div>
+                </div>
+                <input type="file" id="document_file" name="document_file" style="display: none;" 
+                       accept=".pdf,.png,.jpg,.jpeg,.webp" required onchange="handleFileSelected(this)">
             </div>
 
-            <div class="info-callout" style="margin-top: 1rem;">
+            <div class="info-callout" style="margin-top: 1.25rem;">
                 <p>
-                    <i data-lucide="lock" style="width: 15px; height: 15px; color: var(--primary);"></i>
-                    <span>Ownership isolation verified upon every access. Direct public URL serving is strictly prohibited.</span>
+                    <i data-lucide="shield-alert" style="width: 15px; height: 15px; color: var(--cyber-accent);"></i>
+                    <span>Uploaded files are quarantined with cryptographic UUIDs outside the web root and served exclusively through authenticated IDOR gateways.</span>
                 </p>
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.85rem; margin-top: 1.75rem;">
                 <button type="button" onclick="closeModal('uploadDocumentModal')" class="btn btn-secondary">Cancel</button>
                 <button type="submit" class="btn btn-primary">
-                    <i data-lucide="shield-check"></i> Upload to Vault
+                    <i data-lucide="lock"></i> Quarantined Upload
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<!-- Modal: Secure Document Preview -->
+<div id="previewDocModal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 900px; width: 95%;">
+        <div class="modal-header">
+            <h3 class="modal-title" id="previewModalTitle">
+                <i data-lucide="file-text" style="color: var(--secondary-cyan);"></i> Document Preview
+            </h3>
+            <button class="modal-close-btn" onclick="closeModal('previewDocModal')">&times;</button>
+        </div>
+        <div id="previewContainer" style="min-height: 480px; max-height: 70vh; display: flex; align-items: center; justify-content: center; background: #000000; border-radius: var(--radius-md); overflow: hidden;">
+            <!-- Rendered dynamically -->
+        </div>
+    </div>
+</div>
+
+<script>
+function handleFileSelected(input) {
+    const display = document.getElementById('selectedFileName');
+    if (input.files && input.files[0]) {
+        display.innerText = "Selected: " + input.files[0].name + " (" + (input.files[0].size / 1024).toFixed(1) + " KB)";
+    } else {
+        display.innerText = "";
+    }
+}
+
+function previewVaultDoc(url, filename, fileType) {
+    const title = document.getElementById('previewModalTitle');
+    title.innerHTML = `<i data-lucide="file-text" style="color: var(--secondary-cyan);"></i> ${filename}`;
+    const container = document.getElementById('previewContainer');
+    container.innerHTML = '';
+
+    if (fileType && fileType.includes('pdf')) {
+        container.innerHTML = `<iframe src="${url}" style="width: 100%; height: 600px; border: none;"></iframe>`;
+    } else {
+        container.innerHTML = `<img src="${url}" alt="${filename}" style="max-width: 100%; max-height: 600px; object-fit: contain;">`;
+    }
+
+    openModal('previewDocModal');
+}
+</script>
 {% endif %}
 {% endblock %}

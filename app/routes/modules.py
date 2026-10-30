@@ -43,3 +43,22 @@ def profile():
         return redirect(url_for('modules.profile'))
 
     return render_template('profile.html', user=user)
+
+@modules_bp.route('/security')
+def security():
+    """Dedicated Cyber Security Command Centre showcasing defense-in-depth architecture."""
+    user = get_current_user()
+    return render_template('security.html', user=user)
+
+@modules_bp.route('/assistant')
+def assistant():
+    """Future Feature Preview: AI Car Assistant."""
+    user = get_current_user()
+    return render_template('assistant.html', user=user)
+
+@modules_bp.route('/services')
+def services():
+    """Future Feature Preview: Nearby Services and Reviews."""
+    user = get_current_user()
+    return render_template('services.html', user=user)
+

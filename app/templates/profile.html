@@ -1,22 +1,30 @@
 {% extends "base.html" %}
 
-{% block title %}User Profile & Security — AutoVault{% endblock %}
-{% block header_title %}Account & Security Settings{% endblock %}
+{% block title %}Settings &amp; Security Credentials — AutoVault{% endblock %}
+{% block header_title %}Account &amp; Security Settings{% endblock %}
 
 {% block content %}
 <div class="profile-page" style="max-width: 900px; margin: 0 auto;">
+    <!-- Profile Page Header -->
     <div style="margin-bottom: 2rem;">
-        <h1 style="font-size: 1.85rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">Profile &amp; Security Credentials</h1>
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.775rem; font-weight: 700; color: var(--secondary-cyan); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem;">
+            <i data-lucide="user-check" style="width: 14px; height: 14px;"></i>
+            Verified Vault Identity
+        </div>
+        <h1 style="font-size: 2.15rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.03em;">Settings &amp; Security Credentials</h1>
         <p style="color: var(--text-secondary); font-size: 0.95rem;">Manage personal account identity, operational credentials, and cryptographic keys.</p>
     </div>
 
     <!-- Account Details Form -->
-    <div class="card" style="margin-bottom: 2rem;">
-        <div class="card-header">
-            <h3 class="card-title">
-                <i data-lucide="user" style="color: var(--primary);"></i> Personal Details
-            </h3>
-            <span class="badge-vault-gray">Vault Account</span>
+    <div class="card" style="margin-bottom: 2rem; padding: 2.25rem;">
+        <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
+            <div>
+                <h3 class="card-title">
+                    <i data-lucide="user" style="color: var(--primary);"></i> Personal Profile Identity
+                </h3>
+                <p class="card-subtitle">Personal account metadata and telemetry ownership</p>
+            </div>
+            <span class="badge-vault-blue">Vault Account</span>
         </div>
         <form method="POST" action="{{ url_for('modules.profile') }}">
             <input type="hidden" name="action" value="update_info">
@@ -26,38 +34,41 @@
                     <input type="text" id="name" name="name" class="form-control" value="{{ user.name }}" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="username">Username (Locked)</label>
-                    <input type="text" id="username" class="form-control" value="{{ user.username }}" disabled>
-                    <span class="form-text">Usernames cannot be modified after registration.</span>
+                    <label class="form-label" for="username">Username (Tenancy Key &bull; Locked)</label>
+                    <input type="text" id="username" class="form-control" value="{{ user.username }}" disabled style="opacity: 0.7;">
+                    <span class="form-text">Usernames are cryptographically immutable to enforce audit trail tenancy.</span>
                 </div>
             </div>
 
             <div class="form-grid-2">
                 <div class="form-group">
                     <label class="form-label" for="email">Email Address (Locked)</label>
-                    <input type="email" id="email" class="form-control" value="{{ user.email }}" disabled>
+                    <input type="email" id="email" class="form-control" value="{{ user.email }}" disabled style="opacity: 0.7;">
                     <span class="form-text">Primary identifier for security and system notifications.</span>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Member Since</label>
-                    <input type="text" class="form-control" value="{{ user.created_at.strftime('%d %B %Y') }}" disabled>
+                    <input type="text" class="form-control" value="{{ user.created_at.strftime('%d %B %Y') }}" disabled style="opacity: 0.7;">
                 </div>
             </div>
 
             <div style="display: flex; justify-content: flex-end;">
                 <button type="submit" class="btn btn-primary">
-                    <i data-lucide="save"></i> Update Profile
+                    <i data-lucide="save"></i> Update Profile Details
                 </button>
             </div>
         </form>
     </div>
 
     <!-- Change Password Form -->
-    <div class="card" style="margin-bottom: 2rem;">
-        <div class="card-header">
-            <h3 class="card-title">
-                <i data-lucide="key" style="color: var(--warning);"></i> Security &amp; Password
-            </h3>
+    <div class="card" style="margin-bottom: 2rem; padding: 2.25rem;">
+        <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
+            <div>
+                <h3 class="card-title">
+                    <i data-lucide="key" style="color: var(--warning);"></i> Security &amp; Cryptographic Password
+                </h3>
+                <p class="card-subtitle">Salted key derivation update (PBKDF2/scrypt)</p>
+            </div>
             <span class="badge-vault-amber">Credential Update</span>
         </div>
         <form method="POST" action="{{ url_for('modules.profile') }}">
@@ -83,7 +94,7 @@
 
             <div style="display: flex; justify-content: flex-end;">
                 <button type="submit" class="btn btn-secondary">
-                    <i data-lucide="shield-check"></i> Update Password
+                    <i data-lucide="shield-check"></i> Update Password Hash
                 </button>
             </div>
         </form>

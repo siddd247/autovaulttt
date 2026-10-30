@@ -7,15 +7,15 @@
     <div class="auth-card" style="max-width: 520px;">
         <div class="auth-header">
             <a href="{{ url_for('dashboard.landing') }}" class="auth-brand">
-                <div class="brand-icon-shield">
-                    <i data-lucide="shield-check"></i>
+                <div class="brand-icon-shield" style="width: 44px; height: 44px;">
+                    <i data-lucide="shield-check" style="width: 22px; height: 22px;"></i>
                 </div>
                 <div class="brand-text-group" style="text-align: left;">
                     <span class="brand-name">AutoVault</span>
                     <span class="brand-badge-version">SYSTEM v1.0</span>
                 </div>
             </a>
-            <h2 class="auth-title">Create Your Vault</h2>
+            <h2 class="auth-title">Initialize Your Vault</h2>
             <p class="auth-desc">Register a secure identity to manage vehicle telemetry and records</p>
         </div>
 
@@ -54,19 +54,19 @@
 
             <div class="info-callout">
                 <p>
-                    <i data-lucide="lock" style="width: 15px; height: 15px; color: var(--primary);"></i>
-                    <span>Passwords are salted &amp; cryptographically hashed (PBKDF2/scrypt) prior to persistence.</span>
+                    <i data-lucide="lock" style="width: 16px; height: 16px; color: var(--secondary-cyan); flex-shrink: 0;"></i>
+                    <span>Passwords are salted &amp; cryptographically hashed (Werkzeug PBKDF2/scrypt) prior to persistence. Plaintext credentials never touch disk.</span>
                 </p>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-block" style="padding: 0.85rem;">
+            <button type="submit" class="btn btn-primary btn-block" style="padding: 0.85rem; font-size: 0.95rem;">
                 <i data-lucide="shield-plus" style="width: 18px; height: 18px;"></i> Create Secure Vault
             </button>
         </form>
 
         <div class="auth-footer">
-            <p>Already have an account? <a href="{{ url_for('auth.login') }}">Sign In</a></p>
-            <p style="margin-top: 0.65rem;"><a href="{{ url_for('dashboard.landing') }}" style="color: var(--text-muted); font-size: 0.8rem;">&larr; Back to Home</a></p>
+            <p>Already have an account? <a href="{{ url_for('auth.login') }}" style="font-weight: 700; color: var(--secondary-cyan);">Sign In to Cockpit</a></p>
+            <p style="margin-top: 0.75rem;"><a href="{{ url_for('dashboard.landing') }}" style="color: var(--text-muted); font-size: 0.8rem;">&larr; Back to AutoVault Home</a></p>
         </div>
     </div>
 </div>

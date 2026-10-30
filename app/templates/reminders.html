@@ -1,14 +1,19 @@
 {% extends "base.html" %}
 
 {% block title %}Maintenance &amp; Renewal Reminders — AutoVault{% endblock %}
-{% block header_title %}Maintenance &amp; Renewal Reminders{% endblock %}
+{% block header_title %}Scheduled Reminders &amp; Compliance Alerts{% endblock %}
 
 {% block content %}
 <div class="reminders-page">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <!-- Top Header & Action -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
         <div>
-            <h1 style="font-size: 1.85rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">Scheduled Reminders &amp; Deadlines</h1>
-            <p style="color: var(--text-secondary); font-size: 0.95rem;">Calendar &amp; mileage dual-trigger alerts for maintenance, servicing, and compliance renewals.</p>
+            <div style="display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.775rem; font-weight: 700; color: var(--warning); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem;">
+                <i data-lucide="bell-ring" style="width: 14px; height: 14px;"></i>
+                Calendar &amp; Odometer Dual-Trigger Engine
+            </div>
+            <h1 style="font-size: 2.15rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.03em;">Scheduled Reminders &amp; Deadlines</h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Calendar and mileage dual-trigger alerts for periodic maintenance, fluids, and regulatory compliance renewals.</p>
         </div>
         {% if selected_vehicle %}
             <button type="button" onclick="openModal('addReminderModal')" class="btn btn-primary">
@@ -18,13 +23,16 @@
     </div>
 
     {% if vehicles %}
-        <!-- Vehicle Selector Tabs if multiple -->
+        <!-- Multi-Vehicle Selector Tabs -->
         {% if vehicles|length > 1 %}
-            <div style="display: flex; gap: 0.75rem; overflow-x: auto; margin-bottom: 1.75rem; padding-bottom: 0.5rem;">
+            <div style="display: flex; gap: 0.75rem; overflow-x: auto; margin-bottom: 1.75rem; padding-bottom: 0.35rem;">
                 {% for v in vehicles %}
                     <a href="{{ url_for('reminders.index', selected=v.id) }}" 
-                       class="btn {% if selected_vehicle and selected_vehicle.id == v.id %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
-                        <i data-lucide="{% if 'hunter' in v.model.lower() or 'bullet' in v.model.lower() or 'bike' in (v.variant or '').lower() %}bike{% else %}car{% endif %}" style="width: 14px; height: 14px;"></i> {{ v.display_name }} ({{ v.registration_number or 'No Reg' }})
+                       class="btn {% if selected_vehicle and selected_vehicle.id == v.id %}btn-primary{% else %}btn-secondary{% endif %} btn-sm"
+                       style="white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="{% if 'hunter' in v.model.lower() or 'bullet' in v.model.lower() or 'bike' in (v.variant or '').lower() %}bike{% else %}car{% endif %}" style="width: 14px; height: 14px;"></i>
+                        <span>{{ v.display_name }}</span>
+                        <span style="opacity: 0.75; font-size: 0.725rem;">({{ v.registration_number or 'Unregistered' }})</span>
                     </a>
                 {% endfor %}
             </div>
@@ -44,10 +52,10 @@
                     </div>
                 </div>
 
-                <div class="metric-card">
+                <div class="metric-card" style="box-shadow: {% if overdue_count > 0 %}0 4px 20px rgba(255, 100, 116, 0.25){% else %}var(--shadow-sm){% endif %};">
                     <div class="metric-info">
                         <span class="metric-label">Expired / Overdue</span>
-                        <span class="metric-value" style="{% if overdue_count > 0 %}color: #f87171;{% endif %}">{{ overdue_count }}</span>
+                        <span class="metric-value" style="{% if overdue_count > 0 %}color: var(--danger);{% endif %}">{{ overdue_count }}</span>
                         <span class="metric-desc">Immediate action required</span>
                     </div>
                     <div class="metric-icon-box {% if overdue_count > 0 %}icon-amber{% else %}icon-emerald{% endif %}">
@@ -58,7 +66,7 @@
                 <div class="metric-card">
                     <div class="metric-info">
                         <span class="metric-label">Due Soon</span>
-                        <span class="metric-value" style="{% if due_soon_count > 0 %}color: #fbbf24;{% endif %}">{{ due_soon_count }}</span>
+                        <span class="metric-value" style="{% if due_soon_count > 0 %}color: var(--warning);{% endif %}">{{ due_soon_count }}</span>
                         <span class="metric-desc">Due in &le;7 days or &le;500 km</span>
                     </div>
                     <div class="metric-icon-box icon-cyan">
@@ -68,7 +76,7 @@
 
                 <div class="metric-card">
                     <div class="metric-info">
-                        <span class="metric-label">Completed</span>
+                        <span class="metric-label">Completed Tasks</span>
                         <span class="metric-value">{{ completed_reminders|length }}</span>
                         <span class="metric-desc">Resolved tasks</span>
                     </div>
@@ -82,13 +90,15 @@
             <div class="card" style="margin-bottom: 2rem;">
                 <div class="card-header">
                     <div>
-                        <h3 class="card-title"><i data-lucide="bell" style="color: var(--primary);"></i> Scheduled Tasks &amp; Compliance</h3>
+                        <h3 class="card-title">
+                            <i data-lucide="bell" style="color: var(--primary);"></i> Scheduled Tasks &amp; Compliance
+                        </h3>
                         <p class="card-subtitle">Active regulatory inspections and maintenance deadlines for {{ selected_vehicle.display_name }} (Current Odometer: {{ "{:,}".format(selected_vehicle.current_odometer) }} km)</p>
                     </div>
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
                         {% if overdue_count > 0 %}
                             <span class="badge-subtle-rose" style="font-weight: 700; font-size: 0.8rem;">
-                                <i data-lucide="alert-octagon" style="width: 12px; height: 12px;"></i> {{ overdue_count }} Expired / Overdue
+                                <i data-lucide="alert-octagon" style="width: 12px; height: 12px; vertical-align: middle;"></i> {{ overdue_count }} Expired / Overdue
                             </span>
                         {% endif %}
                         <span class="badge-vault-blue">{{ active_reminders|length }} Total Active</span>
@@ -110,10 +120,10 @@
                             </thead>
                             <tbody>
                                 {% for r in active_reminders %}
-                                    <tr id="reminder-row-{{ r.id }}" {% if r.computed_status == 'Overdue' %}style="background: rgba(244, 63, 94, 0.05);"{% endif %}>
+                                    <tr id="reminder-row-{{ r.id }}" {% if r.computed_status == 'Overdue' %}style="background: rgba(255, 100, 116, 0.06);"{% endif %}>
                                         <td>
                                             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                                                <span style="font-weight: 700; color: #ffffff;">{{ r.title }}</span>
+                                                <span style="font-weight: 700; color: #FFFFFF;">{{ r.title }}</span>
                                                 {% if r.computed_status == 'Overdue' %}
                                                     {% if r.is_insurance_reminder() %}
                                                         <span class="badge-tag badge-subtle-rose" style="font-size: 0.7rem; font-weight: 700;">INSURANCE EXPIRED</span>
@@ -128,19 +138,19 @@
                                         </td>
                                         <td style="font-feature-settings: 'tnum';">
                                             {% if r.due_date %}
-                                                {{ r.due_date }}
+                                                <span style="font-weight: 600; color: #FFFFFF;">{{ r.due_date }}</span>
                                             {% else %}
                                                 <span style="color: var(--text-muted);">&mdash;</span>
                                             {% endif %}
                                         </td>
                                         <td style="font-feature-settings: 'tnum';">
                                             {% if r.due_mileage %}
-                                                {{ "{:,}".format(r.due_mileage) }} km
+                                                <span style="font-weight: 600; color: #FFFFFF;">{{ "{:,}".format(r.due_mileage) }} km</span>
                                                 {% set km_diff = r.due_mileage - selected_vehicle.current_odometer %}
                                                 {% if km_diff > 0 %}
                                                     <span style="color: var(--text-muted); font-size: 0.75rem;">(in {{ "{:,}".format(km_diff) }} km)</span>
                                                 {% else %}
-                                                    <span style="color: #f87171; font-size: 0.75rem; font-weight: 700;">({{ "{:,}".format(-km_diff) }} km past)</span>
+                                                    <span style="color: var(--danger); font-size: 0.75rem; font-weight: 700;">({{ "{:,}".format(-km_diff) }} km past)</span>
                                                 {% endif %}
                                             {% else %}
                                                 <span style="color: var(--text-muted);">&mdash;</span>
@@ -148,11 +158,11 @@
                                         </td>
                                         <td>
                                             {% if r.priority == 'High' %}
-                                                <span class="badge-subtle-amber">High Priority</span>
+                                                <span class="badge-subtle-amber" style="font-weight: 700;">High Priority</span>
                                             {% elif r.priority == 'Medium' %}
-                                                <span class="badge-subtle-slate">Medium</span>
+                                                <span class="badge-tag">Medium</span>
                                             {% else %}
-                                                <span class="badge-subtle-slate" style="opacity: 0.8;">Low</span>
+                                                <span class="badge-tag" style="opacity: 0.8;">Low</span>
                                             {% endif %}
                                         </td>
                                         <td>
@@ -165,7 +175,7 @@
                                                     <i data-lucide="clock" style="width: 13px; height: 13px;"></i> EXPIRING SOON
                                                 </span>
                                             {% else %}
-                                                <span class="badge-subtle-slate" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                                                <span class="badge-tag" style="display: inline-flex; align-items: center; gap: 0.35rem;">
                                                     <i data-lucide="calendar" style="width: 13px; height: 13px;"></i> Upcoming
                                                 </span>
                                             {% endif %}
@@ -200,9 +210,9 @@
                         </table>
                     </div>
                 {% else %}
-                    <div style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
-                        <i data-lucide="check-circle-2" style="width: 48px; height: 48px; color: #10b981; opacity: 0.7; margin-bottom: 1rem;"></i>
-                        <h4 style="color: #ffffff; margin-bottom: 0.5rem;">All Caught Up!</h4>
+                    <div style="text-align: center; padding: 3.5rem 1.5rem; color: var(--text-secondary);">
+                        <i data-lucide="check-circle-2" style="width: 48px; height: 48px; color: var(--success); margin-bottom: 1rem;"></i>
+                        <h4 style="color: #FFFFFF; font-size: 1.15rem; margin-bottom: 0.5rem;">All Caught Up!</h4>
                         <p style="font-size: 0.9rem; max-width: 420px; margin: 0 auto 1.5rem;">You have no pending maintenance deadlines or compliance tasks for this vehicle.</p>
                         <button type="button" onclick="openModal('addReminderModal')" class="btn btn-primary btn-sm">
                             <i data-lucide="plus"></i> Set New Reminder
@@ -216,8 +226,8 @@
                 <div class="card">
                     <div class="card-header">
                         <div>
-                            <h3 class="card-title"><i data-lucide="clipboard-check" style="color: #10b981;"></i> Completed History</h3>
-                            <p class="card-subtitle">Previously resolved reminders</p>
+                            <h3 class="card-title"><i data-lucide="clipboard-check" style="color: var(--success);"></i> Completed History</h3>
+                            <p class="card-subtitle">Previously resolved reminders and renewals</p>
                         </div>
                         <span class="badge-vault-green">{{ completed_reminders|length }} Done</span>
                     </div>
@@ -337,10 +347,10 @@
 
 <!-- Modal: Confirm Completion & Document Upload / Renewal -->
 <div id="completeReminderModal" class="modal-overlay">
-    <div class="modal-container" style="max-width: 540px;">
+    <div class="modal-container" style="max-width: 560px;">
         <div class="modal-header">
             <h3 class="modal-title" style="display: flex; align-items: center; gap: 0.6rem;">
-                <i data-lucide="shield-check" style="color: #10b981; width: 22px; height: 22px;"></i>
+                <i data-lucide="shield-check" style="color: var(--success); width: 22px; height: 22px;"></i>
                 <span id="completeModalHeading">Complete Task</span>
             </h3>
             <button class="modal-close-btn" onclick="closeModal('completeReminderModal')">&times;</button>
@@ -348,40 +358,40 @@
 
         <form id="completeReminderForm" method="POST" action="" enctype="multipart/form-data">
             <!-- Explicit Confirmation Prompt Banner -->
-            <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.75rem;">
-                <i data-lucide="help-circle" style="color: var(--gold-champagne); width: 22px; height: 22px; flex-shrink: 0;"></i>
-                <div style="font-size: 0.875rem; color: #ffffff;">
+            <div style="background: rgba(233, 185, 90, 0.1); border: 1px solid rgba(233, 185, 90, 0.3); border-radius: var(--radius-md); padding: 0.95rem 1.15rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.75rem;">
+                <i data-lucide="help-circle" style="color: var(--cyber-accent); width: 22px; height: 22px; flex-shrink: 0;"></i>
+                <div style="font-size: 0.875rem; color: #FFFFFF;">
                     <strong>Confirm Task Completion:</strong> Do you want to mark this reminder as completed and renew records?
                 </div>
             </div>
 
             <!-- Summary Details Box -->
-            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+            <div style="background: var(--bg-inset); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.15rem 1.25rem; margin-bottom: 1.25rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-                    <span id="modalVehicleBadge" style="font-size: 0.75rem; font-weight: 700; color: var(--gold-champagne); letter-spacing: 0.05em; text-transform: uppercase;"></span>
+                    <span id="modalVehicleBadge" style="font-size: 0.75rem; font-weight: 800; color: var(--secondary-cyan); letter-spacing: 0.05em; text-transform: uppercase;"></span>
                     <span id="modalDueInfo" style="font-size: 0.75rem; color: var(--text-muted);"></span>
                 </div>
-                <div id="modalReminderTitle" style="font-size: 1.1rem; font-weight: 700; color: #ffffff;"></div>
-                <div id="modalReminderDesc" style="font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.4;"></div>
+                <div id="modalReminderTitle" style="font-size: 1.15rem; font-weight: 800; color: #FFFFFF;"></div>
+                <div id="modalReminderDesc" style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.45;"></div>
             </div>
 
             <!-- Dynamic Expiry Date Section for Insurance / PUCC -->
             <div id="expirySection" style="display: none; margin-bottom: 1.25rem;">
-                <label class="form-label" for="new_expiry_date" id="expiryLabel" style="font-weight: 600;"></label>
+                <label class="form-label" for="new_expiry_date" id="expiryLabel" style="font-weight: 700;"></label>
                 <input type="date" id="new_expiry_date" name="new_expiry_date" class="form-control">
-                <p id="expiryHelpText" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem; line-height: 1.4;"></p>
+                <p id="expiryHelpText" style="font-size: 0.775rem; color: var(--text-muted); margin-top: 0.35rem; line-height: 1.4;"></p>
             </div>
 
             <!-- Document Attachment Section with Skip Option -->
             <div style="margin-bottom: 1.25rem;">
-                <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; font-weight: 600;">
+                <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; font-weight: 700;">
                     <span id="docLabel">Attach Renewed Document (Optional)</span>
                     <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">PDF, JPG, PNG</span>
                 </label>
                 <input type="file" id="renewed_document" name="document_file" class="form-control" accept=".pdf,.png,.jpg,.jpeg,.webp">
                 
-                <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.65rem; background: rgba(255, 255, 255, 0.02); padding: 0.6rem 0.85rem; border-radius: 6px; border: 1px dashed var(--border-color);">
-                    <input type="checkbox" id="skip_document" name="skip_document" value="1" style="width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer;" onchange="toggleDocUploadDisabled(this)">
+                <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.75rem; background: var(--bg-inset); padding: 0.75rem 0.95rem; border-radius: var(--radius-sm); border: 1px dashed var(--border-color);">
+                    <input type="checkbox" id="skip_document" name="skip_document" value="1" style="width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer;" onchange="toggleDocUploadDisabled(this)">
                     <label for="skip_document" style="font-size: 0.825rem; color: var(--text-secondary); cursor: pointer; user-select: none;">
                         Skip document upload for now (update record without attaching a file)
                     </label>
@@ -395,7 +405,7 @@
             </div>
 
             <!-- Action Buttons -->
-            <div style="display: flex; justify-content: flex-end; gap: 0.85rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: flex-end; gap: 0.85rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color);">
                 <button type="button" onclick="closeModal('completeReminderModal')" class="btn btn-secondary">No, Cancel</button>
                 <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.45rem;">
                     <i data-lucide="check"></i> Yes, Confirm &amp; Complete
@@ -515,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const row = document.getElementById(`reminder-row-${openReminderId}`);
                 if (row) {
                     row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    row.style.outline = '2px solid var(--gold-champagne)';
+                    row.style.outline = '2px solid var(--cyber-accent)';
                 }
             }
         }, 150);

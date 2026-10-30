@@ -1,13 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Service &amp; Maintenance Ledger — AutoVault{% endblock %}
-{% block header_title %}Service &amp; Maintenance Ledger{% endblock %}
+{% block title %}Service Records &amp; Maintenance — AutoVault{% endblock %}
+{% block header_title %}Service Records &amp; Maintenance Ledger{% endblock %}
 
 {% block content %}
 <div class="maintenance-page">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <!-- Top Header & Action -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
         <div>
-            <h1 style="font-size: 1.85rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">Service &amp; Maintenance Records</h1>
+            <div style="display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.775rem; font-weight: 700; color: var(--success); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem;">
+                <i data-lucide="wrench" style="width: 14px; height: 14px;"></i>
+                Audited Workshop Ledger
+            </div>
+            <h1 style="font-size: 2.15rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.03em;">Service Records &amp; Maintenance</h1>
             <p style="color: var(--text-secondary); font-size: 0.95rem;">Audited maintenance history, workshop invoices, and component lifecycle records.</p>
         </div>
         {% if selected_vehicle %}
@@ -18,13 +23,16 @@
     </div>
 
     {% if vehicles %}
-        <!-- Vehicle Selector Tabs if multiple -->
+        <!-- Multi-Vehicle Selector Tabs -->
         {% if vehicles|length > 1 %}
-            <div style="display: flex; gap: 0.75rem; overflow-x: auto; margin-bottom: 1.75rem; padding-bottom: 0.5rem;">
+            <div style="display: flex; gap: 0.75rem; overflow-x: auto; margin-bottom: 1.75rem; padding-bottom: 0.35rem;">
                 {% for v in vehicles %}
                     <a href="{{ url_for('maintenance.index', selected=v.id) }}" 
-                       class="btn {% if selected_vehicle and selected_vehicle.id == v.id %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
-                        <i data-lucide="{% if 'hunter' in v.model.lower() or 'bullet' in v.model.lower() or 'bike' in (v.variant or '').lower() %}bike{% else %}car{% endif %}" style="width: 14px; height: 14px;"></i> {{ v.display_name }} ({{ v.registration_number or 'No Reg' }})
+                       class="btn {% if selected_vehicle and selected_vehicle.id == v.id %}btn-primary{% else %}btn-secondary{% endif %} btn-sm"
+                       style="white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="{% if 'hunter' in v.model.lower() or 'bullet' in v.model.lower() or 'bike' in (v.variant or '').lower() %}bike{% else %}car{% endif %}" style="width: 14px; height: 14px;"></i>
+                        <span>{{ v.display_name }}</span>
+                        <span style="opacity: 0.75; font-size: 0.725rem;">({{ v.registration_number or 'Unregistered' }})</span>
                     </a>
                 {% endfor %}
             </div>
@@ -33,7 +41,7 @@
         {% if selected_vehicle %}
             <!-- Metric Cards for Maintenance -->
             <div class="metric-grid">
-                <div class="metric-card">
+                <div class="metric-card" style="box-shadow: 0 4px 20px rgba(53, 212, 154, 0.15);">
                     <div class="metric-info">
                         <span class="metric-label">Total Maintenance Spend</span>
                         <span class="metric-value">₹{{ "{:,.2f}".format(total_spend) }}</span>
@@ -81,8 +89,8 @@
                 <div class="metric-card">
                     <div class="metric-info">
                         <span class="metric-label">Service Health</span>
-                        <span class="metric-value" style="color: #34d399; font-size: 1.35rem;">Optimal</span>
-                        <span class="metric-desc">Periodic checks logged</span>
+                        <span class="metric-value" style="color: var(--success); font-size: 1.35rem;">Optimal</span>
+                        <span class="metric-desc">Periodic checks verified</span>
                     </div>
                     <div class="metric-icon-box icon-cyan">
                         <i data-lucide="activity"></i>
@@ -90,12 +98,14 @@
                 </div>
             </div>
 
-            <!-- Maintenance History Table -->
+            <!-- Maintenance History Table & Timeline -->
             <div class="card">
                 <div class="card-header">
                     <div>
-                        <h3 class="card-title"><i data-lucide="wrench" style="color: var(--primary);"></i> Service History Log</h3>
-                        <p class="card-subtitle">Complete chronological service records for {{ selected_vehicle.display_name }}</p>
+                        <h3 class="card-title">
+                            <i data-lucide="wrench" style="color: var(--primary);"></i> Service History Log
+                        </h3>
+                        <p class="card-subtitle">Complete chronological service records for {{ selected_vehicle.display_name }} (Current Odometer: {{ "{:,}".format(selected_vehicle.current_odometer) }} km)</p>
                     </div>
                     <span class="badge-vault-gray">{{ records|length }} Records</span>
                 </div>
@@ -110,21 +120,36 @@
                                     <th>Odometer</th>
                                     <th>Workshop / Center</th>
                                     <th>Work Summary</th>
-                                    <th>Cost</th>
+                                    <th>Incurred Cost</th>
                                     <th style="text-align: right;">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for r in records %}
                                     <tr>
-                                        <td style="font-weight: 600; color: #ffffff;">{{ r.date }}</td>
+                                        <td style="font-weight: 700; color: #FFFFFF;">{{ r.date }}</td>
                                         <td>
-                                            <span class="badge-vault-blue" style="font-weight: 700;">{{ r.service_type }}</span>
+                                            {% if 'Oil' in r.service_type %}
+                                                <span class="badge-vault-amber" style="font-weight: 700;">
+                                                    <i data-lucide="droplet" style="width: 12px; height: 12px; vertical-align: middle;"></i> {{ r.service_type }}
+                                                </span>
+                                            {% elif 'Brake' in r.service_type %}
+                                                <span class="badge-subtle-rose" style="font-weight: 700;">
+                                                    <i data-lucide="disc" style="width: 12px; height: 12px; vertical-align: middle;"></i> {{ r.service_type }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge-vault-blue" style="font-weight: 700;">
+                                                    <i data-lucide="wrench" style="width: 12px; height: 12px; vertical-align: middle;"></i> {{ r.service_type }}
+                                                </span>
+                                            {% endif %}
                                         </td>
-                                        <td style="font-feature-settings: 'tnum';">{{ "{:,}".format(r.odometer) }} km</td>
+                                        <td style="font-feature-settings: 'tnum'; font-weight: 600;">{{ "{:,}".format(r.odometer) }} km</td>
                                         <td>
                                             {% if r.service_center %}
-                                                <strong>{{ r.service_center }}</strong>
+                                                <strong style="color: #FFFFFF; display: flex; align-items: center; gap: 0.35rem;">
+                                                    <i data-lucide="map-pin" style="width: 12px; height: 12px; color: var(--secondary-cyan);"></i>
+                                                    {{ r.service_center }}
+                                                </strong>
                                             {% else %}
                                                 <span style="color: var(--text-muted);">&mdash;</span>
                                             {% endif %}
@@ -134,11 +159,12 @@
                                             {% if r.notes %}<div style="color: var(--text-muted); font-size: 0.775rem;">{{ r.notes }}</div>{% endif %}
                                             {% if not r.description and not r.notes %}<span style="color: var(--text-muted);">&mdash;</span>{% endif %}
                                         </td>
-                                        <td style="font-weight: 700; color: #ffffff; font-feature-settings: 'tnum';">
+                                        <td style="font-weight: 700; color: #FFFFFF; font-feature-settings: 'tnum';">
                                             ₹{{ "{:,.2f}".format(r.cost) }}
                                         </td>
                                         <td style="text-align: right;">
-                                            <form method="POST" action="{{ url_for('maintenance.delete', record_id=r.id) }}" onsubmit="return confirm('Delete this maintenance record?');" style="display: inline;">
+                                            <form method="POST" action="{{ url_for('maintenance.delete', record_id=r.id) }}" 
+                                                  onsubmit="return confirm('Permanently remove this maintenance record?');" style="display: inline-block;">
                                                 <button type="submit" class="logout-icon-btn" title="Delete record">
                                                     <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                                                 </button>
@@ -150,15 +176,22 @@
                         </table>
                     </div>
                 {% else %}
-                    <div style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
-                        <i data-lucide="wrench" style="width: 48px; height: 48px; opacity: 0.4; margin-bottom: 1rem;"></i>
-                        <h4 style="color: #ffffff; margin-bottom: 0.5rem;">No Service Records Logged Yet</h4>
-                        <p style="font-size: 0.9rem; max-width: 420px; margin: 0 auto 1.5rem;">Log your engine oil replacements, brake servicing, and periodic workshop visits to maintain a verified digital service book.</p>
+                    <div style="text-align: center; padding: 3.5rem 1.5rem; color: var(--text-secondary);">
+                        <i data-lucide="wrench" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                        <p style="font-size: 1.1rem; color: #FFFFFF; font-weight: 700; margin-bottom: 0.35rem;">No Service Records Logged</p>
+                        <p style="font-size: 0.875rem; max-width: 440px; margin: 0 auto 1.75rem;">Document your authorized workshop visits, component replacements, and oil changes to maintain your vehicle's digital logbook.</p>
                         <button type="button" onclick="openModal('addMaintenanceModal')" class="btn btn-primary btn-sm">
-                            <i data-lucide="plus"></i> Add First Service Record
+                            <i data-lucide="wrench"></i> Add First Service Record
                         </button>
                     </div>
                 {% endif %}
+            </div>
+
+        {% else %}
+            <div class="empty-state-box">
+                <i data-lucide="car" style="width: 32px; height: 32px; color: var(--primary); margin-bottom: 1rem;"></i>
+                <h3 class="empty-state-title">No vehicle selected</h3>
+                <p class="empty-state-desc">Select or add a vehicle to view its maintenance ledger.</p>
             </div>
         {% endif %}
 
@@ -167,22 +200,22 @@
             <div class="empty-state-icon">
                 <i data-lucide="car" style="width: 32px; height: 32px;"></i>
             </div>
-            <h2 class="empty-state-title">No Vehicles Registered</h2>
-            <p class="empty-state-desc">You need to register a vehicle before logging maintenance records.</p>
-            <a href="{{ url_for('vehicle.index') }}" class="btn btn-primary">
-                <i data-lucide="plus"></i> Add Vehicle
+            <h2 class="empty-state-title">Your garage is empty</h2>
+            <p class="empty-state-desc">Register a vehicle in AutoVault to begin recording workshop services and part repairs.</p>
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">
+                <i data-lucide="plus"></i> Add Vehicle in Cockpit
             </a>
         </div>
     {% endif %}
 </div>
 
+<!-- Modal: Add Service Record -->
 {% if selected_vehicle %}
-<!-- Modal: Add Maintenance Record -->
 <div id="addMaintenanceModal" class="modal-overlay">
     <div class="modal-container">
         <div class="modal-header">
             <h3 class="modal-title">
-                <i data-lucide="wrench" style="color: var(--primary);"></i> Add Service Record — {{ selected_vehicle.display_name }}
+                <i data-lucide="wrench" style="color: var(--primary);"></i> Log Service Record
             </h3>
             <button class="modal-close-btn" onclick="closeModal('addMaintenanceModal')">&times;</button>
         </div>
@@ -191,63 +224,61 @@
 
             <div class="form-grid-2">
                 <div class="form-group">
-                    <label class="form-label" for="maint_date">Service Date *</label>
-                    <input type="date" id="maint_date" name="date" class="form-control" required>
+                    <label class="form-label" for="date">Service Date *</label>
+                    <input type="date" id="date" name="date" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="maint_type">Service Category *</label>
-                    <select id="maint_type" name="service_type" class="form-control" required>
-                        <option value="General Service">General Periodic Service</option>
-                        <option value="Engine Oil & Filter">Engine Oil & Filter Replacement</option>
-                        <option value="Brake Service">Brake Service & Pad Replacement</option>
-                        <option value="Tyre Replacement">Tyre Replacement / Rotation</option>
-                        <option value="Battery Replacement">Battery Replacement</option>
-                        <option value="AC Service">AC Service & Cabin Filter</option>
-                        <option value="Wheel Alignment">Wheel Alignment & Balancing</option>
-                        <option value="Suspension">Suspension & Steering Overhaul</option>
-                        <option value="Transmission Fluid">Transmission / Gearbox Fluid</option>
-                        <option value="Detailing & Wash">Detailing & Exterior Protection</option>
-                        <option value="Repair / Parts">Unscheduled Repair & Parts</option>
-                        <option value="Other">Other Maintenance</option>
-                    </select>
+                    <label class="form-label" for="odometer">Odometer at Service (km) *</label>
+                    <input type="number" id="odometer" name="odometer" class="form-control" 
+                           placeholder="e.g. {{ selected_vehicle.current_odometer }}" min="{{ selected_vehicle.current_odometer }}" required>
+                    <span class="form-text">Current baseline: {{ "{:,}".format(selected_vehicle.current_odometer) }} km</span>
                 </div>
             </div>
 
             <div class="form-grid-2">
                 <div class="form-group">
-                    <label class="form-label" for="maint_cost">Cost (₹) *</label>
-                    <input type="number" step="0.01" id="maint_cost" name="cost" class="form-control" 
-                           placeholder="e.g. 4500" min="0" required>
+                    <label class="form-label" for="service_type">Service Category *</label>
+                    <select id="service_type" name="service_type" class="form-control" required>
+                        <option value="General Periodic Service">General Periodic Service</option>
+                        <option value="Engine Oil & Filter">Engine Oil & Filter Flush</option>
+                        <option value="Brake Service">Brake Pads & Fluid Service</option>
+                        <option value="Tyre Replacement">Tyres & Alignment</option>
+                        <option value="Battery Replacement">Battery & Electrical</option>
+                        <option value="AC Servicing">AC Filter & Refrigerant Service</option>
+                        <option value="Suspension Repair">Suspension & Steering Overhaul</option>
+                        <option value="Bodywork & Paint">Bodywork & Detailing</option>
+                        <option value="Other Maintenance">Other Maintenance Work</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="maint_odometer">Odometer at Service (km)</label>
-                    <input type="number" id="maint_odometer" name="odometer" class="form-control" 
-                           placeholder="Current: {{ selected_vehicle.current_odometer }}" min="0" value="{{ selected_vehicle.current_odometer }}">
+                    <label class="form-label" for="cost">Incurred Cost (₹) *</label>
+                    <input type="number" step="0.01" id="cost" name="cost" class="form-control" 
+                           placeholder="e.g. 4500.00" min="0" required>
                 </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="maint_center">Workshop / Service Center Name</label>
-                <input type="text" id="maint_center" name="service_center" class="form-control" 
-                       placeholder="e.g. Hyundai Authorized Service, Bosch Car Service, Shell Helix Garage">
+                <label class="form-label" for="service_center">Workshop / Service Center Name</label>
+                <input type="text" id="service_center" name="service_center" class="form-control" 
+                       placeholder="e.g. Hyundai Express Care, Bosch Service, Local Workshop">
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="maint_desc">Work Description / Parts Replaced</label>
-                <textarea id="maint_desc" name="description" class="form-control" rows="2" 
-                          placeholder="e.g. 5W-30 Synthetic oil filled, OEM oil filter installed, front brake pads inspected."></textarea>
+                <label class="form-label" for="description">Work Summary</label>
+                <input type="text" id="description" name="description" class="form-control" 
+                       placeholder="e.g. Synthetic 5W-30 oil replacement, air filter swap, brake fluid top-up">
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="maint_notes">Notes / Warranty Remarks</label>
-                <input type="text" id="maint_notes" name="notes" class="form-control" 
-                       placeholder="e.g. Invoice #HY-9921, next inspection in 10,000 km">
+                <label class="form-label" for="notes">Invoice Number / Notes</label>
+                <input type="text" id="notes" name="notes" class="form-control" 
+                       placeholder="e.g. Invoice #HYU-2026-9921, 6 months warranty on parts">
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.85rem; margin-top: 1.75rem;">
                 <button type="button" onclick="closeModal('addMaintenanceModal')" class="btn btn-secondary">Cancel</button>
                 <button type="submit" class="btn btn-primary">
-                    <i data-lucide="check"></i> Save Service Record
+                    <i data-lucide="check"></i> Save Record
                 </button>
             </div>
         </form>
@@ -255,12 +286,12 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const d = document.getElementById('maint_date');
-        if (d && !d.value) {
-            d.value = new Date().toISOString().split('T')[0];
-        }
-    });
+document.addEventListener('DOMContentLoaded', () => {
+    const dateInput = document.getElementById('date');
+    if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+});
 </script>
 {% endif %}
 {% endblock %}

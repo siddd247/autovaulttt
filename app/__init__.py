@@ -78,5 +78,3 @@ def create_app(config_class=Config):
             app.logger.warning(f"Database initialization deferred or failed: {e}")
 
     return app
-
-
