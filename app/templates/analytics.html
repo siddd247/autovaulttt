@@ -29,7 +29,7 @@
                 {% for v in vehicles %}
                     <a href="{{ url_for('analytics.index', selected=v.id) }}" 
                        class="btn {% if selected_vehicle and selected_vehicle.id == v.id %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
-                        <i data-lucide="car"></i> {{ v.display_name }} ({{ v.registration_number or 'No Reg' }})
+                        <i data-lucide="{% if 'hunter' in v.model.lower() or 'bullet' in v.model.lower() or 'bike' in (v.variant or '').lower() %}bike{% else %}car{% endif %}" style="width: 14px; height: 14px;"></i> {{ v.display_name }} ({{ v.registration_number or 'No Reg' }})
                     </a>
                 {% endfor %}
             </div>

@@ -26,6 +26,13 @@ def create_app(config_class=Config):
     # Initialize extensions
     db.init_app(app)
 
+    # Apply ProxyFix for correct HTTPS / proxy headers handling on platforms like Vercel
+    try:
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    except Exception:
+        pass
+
     # Context processor to make current user helper available across all Jinja templates
     from app.routes.auth import get_current_user
     @app.context_processor

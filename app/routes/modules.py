@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from app.models import db
 from app.routes.auth import login_required, get_current_user
 
@@ -16,6 +16,9 @@ def profile():
             if new_name:
                 user.name = new_name
                 db.session.commit()
+                if '_auth_user' in session:
+                    session['_auth_user']['name'] = new_name
+                    session.modified = True
                 flash('Profile details updated successfully.', 'success')
             else:
                 flash('Name cannot be empty.', 'danger')
@@ -33,6 +36,9 @@ def profile():
             else:
                 user.set_password(new_pass)
                 db.session.commit()
+                if '_auth_user' in session:
+                    session['_auth_user']['password_hash'] = user.password_hash
+                    session.modified = True
                 flash('Password changed successfully!', 'success')
         return redirect(url_for('modules.profile'))
 

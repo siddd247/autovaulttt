@@ -116,6 +116,14 @@ def download(doc_id):
     docs_upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'documents')
     file_path = os.path.join(docs_upload_dir, doc.filename)
     if not os.path.exists(file_path):
+        # On ephemeral serverless instances, regenerate sample PDF if missing
+        try:
+            from seed import _ensure_dummy_file
+            _ensure_dummy_file(docs_upload_dir, doc.filename)
+        except Exception:
+            pass
+
+    if not os.path.exists(file_path):
         flash('The requested document is no longer in ephemeral serverless storage.', 'warning')
         return redirect(url_for('documents.index', selected=doc.vehicle_id))
 
@@ -141,6 +149,14 @@ def view(doc_id):
 
     docs_upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'documents')
     file_path = os.path.join(docs_upload_dir, doc.filename)
+    if not os.path.exists(file_path):
+        # On ephemeral serverless instances, regenerate sample PDF if missing
+        try:
+            from seed import _ensure_dummy_file
+            _ensure_dummy_file(docs_upload_dir, doc.filename)
+        except Exception:
+            pass
+
     if not os.path.exists(file_path):
         flash('The requested document is no longer in ephemeral serverless storage.', 'warning')
         return redirect(url_for('documents.index', selected=doc.vehicle_id))

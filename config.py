@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -42,4 +43,14 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max upload
     UPLOAD_FOLDER = _get_upload_folder()
+
+    # Session cookie hardening & cross-environment persistence
+    SESSION_COOKIE_NAME = 'autovault_session'
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', '').lower() == 'true' or (
+        _is_serverless() and os.environ.get('SESSION_COOKIE_SECURE', '').lower() != 'false'
+    )
+    PERMANENT_SESSION_LIFETIME = timedelta(days=7)
+
 

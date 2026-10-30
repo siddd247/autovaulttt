@@ -131,5 +131,62 @@ class TestAutoVaultPhase1(unittest.TestCase):
         # Must return 403 Forbidden!
         self.assertEqual(idor_attack.status_code, 403)
 
+    def test_serverless_session_resilience_and_cold_start_recovery(self):
+        """Verify that when a cold start or DB wipe occurs on serverless deployment,
+        the authenticated session and vehicle are self-healed and do not redirect to sign in again.
+        """
+        # Register a new user
+        reg_res = self.client.post('/register', data={
+            'name': 'Dev Driver',
+            'email': 'driver@test.com',
+            'username': 'devdriver',
+            'password': 'SecurePassword@123',
+            'confirm_password': 'SecurePassword@123'
+        }, follow_redirects=True)
+        self.assertEqual(reg_res.status_code, 200)
+
+        # Add a vehicle
+        add_res = self.client.post('/vehicle/add', data={
+            'manufacturer': 'Tata',
+            'model': 'Nexon',
+            'variant': 'XZ+',
+            'registration_number': 'MH 02 XY 9999',
+            'fuel_type': 'Petrol',
+            'transmission': 'Manual',
+            'manufacturing_year': '2024',
+            'current_odometer': '5200'
+        }, follow_redirects=True)
+        self.assertEqual(add_res.status_code, 200)
+        self.assertIn(b'Tata Nexon', add_res.data)
+
+        # Simulate cold start / database wipe in a new container instance
+        with self.app.app_context():
+            db.session.remove()
+            db.drop_all()
+            db.create_all()
+            # Verify DB is now completely empty of this user
+            self.assertIsNone(User.query.filter_by(username='devdriver').first())
+            self.assertEqual(Vehicle.query.count(), 0)
+
+        # Now simulate the next request hitting this fresh container with existing session cookie
+        dashboard_res = self.client.get('/dashboard', follow_redirects=False)
+        # MUST NOT redirect to /login! Must return 200 OK!
+        self.assertEqual(dashboard_res.status_code, 200)
+        self.assertIn(b'Tata Nexon', dashboard_res.data)
+
+        # Verify vehicle page also self-heals and renders
+        vehicle_res = self.client.get('/vehicle', follow_redirects=False)
+        self.assertEqual(vehicle_res.status_code, 200)
+        self.assertIn(b'Tata Nexon', vehicle_res.data)
+
+        # Verify DB now contains the restored user and vehicle
+        with self.app.app_context():
+            restored_user = User.query.filter_by(username='devdriver').first()
+            self.assertIsNotNone(restored_user)
+            self.assertEqual(restored_user.name, 'Dev Driver')
+            restored_vehicle = Vehicle.query.filter_by(manufacturer='Tata', model='Nexon').first()
+            self.assertIsNotNone(restored_vehicle)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -188,6 +188,7 @@ class TestAutoVaultAllFeatures(unittest.TestCase):
         view_res = self.client.get(f'/documents/view/{doc_id}')
         self.assertEqual(view_res.status_code, 200)
         self.assertEqual(view_res.data, file_content)
+        view_res.close()
 
         # Log out Alice, log in Bob
         self.client.get('/logout')
@@ -231,6 +232,223 @@ class TestAutoVaultAllFeatures(unittest.TestCase):
         analytics_res = self.client.get('/analytics')
         self.assertEqual(analytics_res.status_code, 200)
         self.assertIn(b'monthlySpendingChart', analytics_res.data)
+
+    def test_view_demo_fleet_and_leave_demo_flow(self):
+        """Test one-click 'View Demo' entry, multi-vehicle fleet (Car, Bike, SUV),
+        document expiry indicators, calculated mileage, and 'Leave Demo' exit.
+        """
+        # 1. Click "View Demo"
+        demo_enter = self.client.get('/demo', follow_redirects=True)
+        self.assertEqual(demo_enter.status_code, 200)
+        self.assertIn(b'DEMO MODE', demo_enter.data)
+        self.assertIn(b'Shubranshu Verma', demo_enter.data)
+        self.assertIn(b'Leave Demo', demo_enter.data)
+
+        # 2. Verify all 3 vehicles exist in database under Shubranshu Verma and JK 02
+        with self.app.app_context():
+            demo_user = User.query.filter_by(username='demo_driver').first()
+            self.assertIsNotNone(demo_user)
+            self.assertEqual(demo_user.name, 'Shubranshu Verma')
+
+            vehicles = Vehicle.query.filter_by(user_id=demo_user.id).all()
+            # Must have at least 3 vehicles: Car (i20), Bike (Hunter 350), SUV (XUV700)
+            self.assertGreaterEqual(len(vehicles), 3)
+
+            car = next((v for v in vehicles if 'i20' in v.model), None)
+            bike = next((v for v in vehicles if 'Hunter' in v.model), None)
+            suv = next((v for v in vehicles if 'XUV700' in v.model), None)
+
+            self.assertIsNotNone(car)
+            self.assertIsNotNone(bike)
+            self.assertIsNotNone(suv)
+
+            # All vehicles must be JK 02
+            self.assertTrue(car.registration_number.startswith('JK 02'))
+            self.assertTrue(bike.registration_number.startswith('JK 02'))
+            self.assertTrue(suv.registration_number.startswith('JK 02'))
+
+            # Document expiry verification:
+            # Bike has expired insurance
+            bike_ins = bike.get_insurance_status()
+            self.assertEqual(bike_ins['status'], 'Expired')
+
+            # SUV has expired pollution (PUCC)
+            suv_pucc = suv.get_pollution_status()
+            self.assertEqual(suv_pucc['status'], 'Expired')
+
+            # Car has upcoming pollution expiry
+            car_pucc = car.get_pollution_status()
+            self.assertEqual(car_pucc['status'], 'Expiring Soon')
+
+            # Fuel entries exist for all vehicles with interval mileage calculated
+            car_fuel = FuelEntry.query.filter_by(vehicle_id=car.id).all()
+            self.assertGreaterEqual(len(car_fuel), 3)
+
+            bike_fuel = FuelEntry.query.filter_by(vehicle_id=bike.id).all()
+            self.assertGreaterEqual(len(bike_fuel), 3)
+
+            suv_fuel = FuelEntry.query.filter_by(vehicle_id=suv.id).all()
+            self.assertGreaterEqual(len(suv_fuel), 3)
+
+            # Documents exist for the demo vehicles
+            car_docs = Document.query.filter_by(vehicle_id=car.id).all()
+            self.assertGreaterEqual(len(car_docs), 1)
+
+        # 3. Check Dashboard reflects document alerts and multi-vehicle switcher
+        dash_res = self.client.get('/dashboard')
+        self.assertEqual(dash_res.status_code, 200)
+        self.assertTrue(b'Expired' in dash_res.data or b'EXPIRED' in dash_res.data)
+        self.assertIn(b'Royal Enfield Hunter 350', dash_res.data)
+        self.assertIn(b'Mahindra XUV700', dash_res.data)
+
+        # 4. Check vehicle profile displays dynamic expiry badges
+        veh_res = self.client.get(f'/vehicle?selected={bike.id}')
+        self.assertEqual(veh_res.status_code, 200)
+        self.assertTrue(b'Expired' in veh_res.data or b'EXPIRED' in veh_res.data)
+
+        # 5. Check fuel page shows calculated mileage
+        fuel_bike_res = self.client.get(f'/fuel?selected={bike.id}')
+        self.assertEqual(fuel_bike_res.status_code, 200)
+        self.assertIn(b'km/L', fuel_bike_res.data)
+
+        # 6. Click "Leave Demo Mode"
+        exit_res = self.client.get('/leave-demo', follow_redirects=True)
+        self.assertEqual(exit_res.status_code, 200)
+        self.assertIn(b'You have safely exited demo mode', exit_res.data)
+
+        # 7. Verify unauthenticated: accessing /dashboard now redirects to /login
+        protect_check = self.client.get('/dashboard', follow_redirects=False)
+        self.assertEqual(protect_check.status_code, 302)
+        self.assertIn('/login', protect_check.headers['Location'])
+
+    def test_reminder_completion_with_insurance_renewal_and_document_upload(self):
+        """Test completing an insurance reminder updates vehicle validity and stores policy document."""
+        self.login_as_alice()
+
+        with self.app.app_context():
+            vehicle = db.session.get(Vehicle, self.vehicle_a_id)
+            # Set vehicle insurance as expired
+            vehicle.insurance_expiry = '2026-01-01'
+            reminder = Reminder(
+                vehicle_id=vehicle.id,
+                title='Comprehensive Policy Renewal',
+                description='Annual insurance coverage expired.',
+                due_date='2026-01-01',
+                priority='High',
+                status='Upcoming'
+            )
+            db.session.add(reminder)
+            db.session.commit()
+            reminder_id = reminder.id
+
+            self.assertEqual(vehicle.get_insurance_status()['status'], 'Expired')
+
+        # Alice completes reminder, providing new expiry date and uploading policy document
+        dummy_file = (io.BytesIO(b'%PDF-1.4 Dummy Policy Document Content'), 'policy_2027.pdf')
+        res = self.client.post(f'/reminders/complete/{reminder_id}', data={
+            'new_expiry_date': '2027-10-30',
+            'completion_notes': 'Renewed via portal, receipt #99120',
+            'document_file': dummy_file
+        }, content_type='multipart/form-data', follow_redirects=True)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertIn(b'Insurance renewed', res.data)
+
+        with self.app.app_context():
+            v = db.session.get(Vehicle, self.vehicle_a_id)
+            r = db.session.get(Reminder, reminder_id)
+
+            # Reminder must be completed
+            self.assertEqual(r.status, 'Completed')
+            self.assertIn('Renewed via portal', r.description)
+
+            # Vehicle insurance expiry must be updated
+            self.assertEqual(v.insurance_expiry, '2027-10-30')
+            self.assertEqual(v.get_insurance_status()['status'], 'Active')
+
+            # Document must be filed in Document table
+            doc = Document.query.filter_by(vehicle_id=v.id, document_type='Insurance').order_by(Document.uploaded_at.desc()).first()
+            self.assertIsNotNone(doc)
+            self.assertEqual(doc.original_filename, 'policy_2027.pdf')
+
+        # Dashboard must not flag this vehicle for expired insurance
+        dash_res = self.client.get('/dashboard')
+        self.assertEqual(dash_res.status_code, 200)
+        self.assertNotIn(b'Insurance policy expired', dash_res.data)
+
+    def test_reminder_completion_with_skip_document_option(self):
+        """Test completing a pollution reminder with skip_document updates vehicle validity without file."""
+        self.login_as_alice()
+
+        with self.app.app_context():
+            vehicle = db.session.get(Vehicle, self.vehicle_a_id)
+            vehicle.pollution_expiry = '2026-02-15'
+            reminder = Reminder(
+                vehicle_id=vehicle.id,
+                title='Pollution (PUCC) Certificate Renewal',
+                description='Emission testing renewal required.',
+                due_date='2026-02-15',
+                priority='Medium',
+                status='Upcoming'
+            )
+            db.session.add(reminder)
+            db.session.commit()
+            reminder_id = reminder.id
+
+            self.assertEqual(vehicle.get_pollution_status()['status'], 'Expired')
+
+        # Complete reminder with skip_document flag
+        res = self.client.post(f'/reminders/complete/{reminder_id}', data={
+            'new_expiry_date': '2027-08-15',
+            'skip_document': '1',
+            'completion_notes': 'Inspection done at authorized station'
+        }, follow_redirects=True)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertIn(b'Pollution (PUCC) renewed', res.data)
+
+        with self.app.app_context():
+            v = db.session.get(Vehicle, self.vehicle_a_id)
+            r = db.session.get(Reminder, reminder_id)
+
+            self.assertEqual(r.status, 'Completed')
+            self.assertEqual(v.pollution_expiry, '2027-08-15')
+            self.assertEqual(v.get_pollution_status()['status'], 'Active')
+
+            # No PUCC document should have been created
+            doc = Document.query.filter_by(vehicle_id=v.id, document_type='PUCC').first()
+            self.assertIsNone(doc)
+
+    def test_vehicle_edit_specifications_and_compliance(self):
+        """Test editing vehicle details and compliance dates directly."""
+        self.login_as_alice()
+
+        edit_res = self.client.post(f'/vehicle/edit/{self.vehicle_a_id}', data={
+            'manufacturer': 'Hyundai',
+            'model': 'i20 N Line',
+            'variant': 'N8 DCT Turbo',
+            'registration_number': 'DL 01 AB 9999',
+            'fuel_type': 'Petrol',
+            'transmission': 'DCT',
+            'manufacturing_year': 2024,
+            'current_odometer': 18500,
+            'color': 'Thunder Blue',
+            'insurance_expiry': '2027-11-01',
+            'pollution_expiry': '2027-05-01'
+        }, follow_redirects=True)
+
+        self.assertEqual(edit_res.status_code, 200)
+        self.assertIn(b'Specifications and compliance records', edit_res.data)
+
+        with self.app.app_context():
+            v = db.session.get(Vehicle, self.vehicle_a_id)
+            self.assertEqual(v.model, 'i20 N Line')
+            self.assertEqual(v.variant, 'N8 DCT Turbo')
+            self.assertEqual(v.registration_number, 'DL 01 AB 9999')
+            self.assertEqual(v.transmission, 'DCT')
+            self.assertEqual(v.current_odometer, 18500)
+            self.assertEqual(v.insurance_expiry, '2027-11-01')
+            self.assertEqual(v.pollution_expiry, '2027-05-01')
 
 if __name__ == '__main__':
     unittest.main()

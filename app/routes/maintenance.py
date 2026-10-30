@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, session
 from app.models import db
 from app.models.vehicle import Vehicle
 from app.models.maintenance import MaintenanceRecord
@@ -82,6 +82,10 @@ def add():
     # Update odometer if maintenance odometer was higher
     if odometer > vehicle.current_odometer:
         vehicle.current_odometer = odometer
+        for v in session.get('_user_vehicles', []):
+            if v.get('id') == vehicle.id:
+                v['current_odometer'] = odometer
+                session.modified = True
 
     db.session.commit()
     flash(f'Maintenance record for "{service_type}" added successfully!', 'success')

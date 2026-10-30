@@ -49,5 +49,20 @@ class Reminder(db.Model):
 
         return 'Upcoming'
 
+    def is_insurance_reminder(self) -> bool:
+        """Checks if this reminder pertains to vehicle insurance renewal."""
+        t = (self.title or '').lower()
+        d = (self.description or '').lower()
+        return ('insurance' in t) or ('policy' in t) or ('insurance' in d)
+
+    def is_pollution_reminder(self) -> bool:
+        """Checks if this reminder pertains to vehicle pollution / PUCC emission certification."""
+        t = (self.title or '').lower()
+        d = (self.description or '').lower()
+        return (
+            ('pollution' in t) or ('pucc' in t) or ('emission' in t) or ('puc' in t) or
+            ('pollution' in d) or ('pucc' in d) or ('emission' in d)
+        )
+
     def __repr__(self):
         return f"<Reminder {self.title} status={self.status}>"

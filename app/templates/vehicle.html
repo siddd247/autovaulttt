@@ -21,8 +21,10 @@
             <div style="display: flex; gap: 0.75rem; overflow-x: auto; margin-bottom: 1.75rem; padding-bottom: 0.5rem;">
                 {% for v in vehicles %}
                     <a href="{{ url_for('vehicle.index', selected=v.id) }}" 
-                       class="btn {% if selected_vehicle and selected_vehicle.id == v.id %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
-                        <i data-lucide="car"></i> {{ v.display_name }} ({{ v.registration_number or 'No Reg' }})
+                       class="btn {% if selected_vehicle and selected_vehicle.id == v.id %}btn-primary{% else %}btn-secondary{% endif %} btn-sm"
+                       style="display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap;">
+                        <i data-lucide="{% if 'hunter' in v.model.lower() or 'bullet' in v.model.lower() or 'bike' in (v.variant or '').lower() %}bike{% else %}car{% endif %}" style="width: 14px; height: 14px;"></i>
+                        {{ v.display_name }} ({{ v.registration_number or 'No Reg' }})
                     </a>
                 {% endfor %}
             </div>
@@ -45,7 +47,10 @@
                             {{ selected_vehicle.variant or 'Base Specification' }} &bull; Profile registered on {{ selected_vehicle.created_at.strftime('%d %b %Y') }}
                         </p>
                     </div>
-                    <div style="display: flex; gap: 0.75rem;">
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <button type="button" onclick="openModal('editVehicleModal')" class="btn btn-secondary btn-sm">
+                            <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i> Edit Specs &amp; Compliance
+                        </button>
                         <form method="POST" action="{{ url_for('vehicle.delete', vehicle_id=selected_vehicle.id) }}" 
                               onsubmit="return confirm('Are you sure you want to permanently remove this vehicle from your vault?');">
                             <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -94,15 +99,23 @@
 
                     <div class="telemetry-spec-card">
                         <span class="telemetry-spec-label">Insurance Expiry</span>
-                        <div class="telemetry-spec-val" style="{% if selected_vehicle.insurance_expiry %}color: #34d399;{% endif %}">
-                            {{ selected_vehicle.insurance_expiry or 'Not Set' }}
+                        {% set ins_status = selected_vehicle.get_insurance_status() %}
+                        <div class="telemetry-spec-val" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                            <span class="{% if ins_status.status == 'Expired' %}badge-subtle-rose{% elif ins_status.status == 'Expiring Soon' %}badge-subtle-amber{% else %}badge-subtle-green{% endif %}">
+                                {{ ins_status.status }}
+                            </span>
+                            <span style="font-size: 0.9rem; color: var(--text-secondary);">{{ ins_status.text }}</span>
                         </div>
                     </div>
 
                     <div class="telemetry-spec-card">
                         <span class="telemetry-spec-label">Pollution (PUCC) Expiry</span>
-                        <div class="telemetry-spec-val" style="{% if selected_vehicle.pollution_expiry %}color: #34d399;{% endif %}">
-                            {{ selected_vehicle.pollution_expiry or 'Not Set' }}
+                        {% set pol_status = selected_vehicle.get_pollution_status() %}
+                        <div class="telemetry-spec-val" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                            <span class="{% if pol_status.status == 'Expired' %}badge-subtle-rose{% elif pol_status.status == 'Expiring Soon' %}badge-subtle-amber{% else %}badge-subtle-green{% endif %}">
+                                {{ pol_status.status }}
+                            </span>
+                            <span style="font-size: 0.9rem; color: var(--text-secondary);">{{ pol_status.text }}</span>
                         </div>
                     </div>
                 </div>
@@ -223,4 +236,102 @@
         </form>
     </div>
 </div>
+
+{% if selected_vehicle %}
+<!-- Modal: Edit Vehicle & Compliance -->
+<div id="editVehicleModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i data-lucide="edit-3" style="color: var(--primary);"></i> Edit {{ selected_vehicle.display_name }}
+            </h3>
+            <button class="modal-close-btn" onclick="closeModal('editVehicleModal')">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('vehicle.edit', vehicle_id=selected_vehicle.id) }}">
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="edit_manufacturer">Manufacturer *</label>
+                    <input type="text" id="edit_manufacturer" name="manufacturer" class="form-control" 
+                           value="{{ selected_vehicle.manufacturer }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit_model">Model *</label>
+                    <input type="text" id="edit_model" name="model" class="form-control" 
+                           value="{{ selected_vehicle.model }}" required>
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="edit_variant">Variant</label>
+                    <input type="text" id="edit_variant" name="variant" class="form-control" 
+                           value="{{ selected_vehicle.variant or '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit_registration_number">Registration Number</label>
+                    <input type="text" id="edit_registration_number" name="registration_number" class="form-control" 
+                           value="{{ selected_vehicle.registration_number or '' }}">
+                </div>
+            </div>
+
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label class="form-label" for="edit_fuel_type">Fuel Type</label>
+                    <select id="edit_fuel_type" name="fuel_type" class="form-control">
+                        {% for ft in ['Petrol', 'Diesel', 'CNG', 'Electric', 'Hybrid'] %}
+                            <option value="{{ ft }}" {% if selected_vehicle.fuel_type == ft %}selected{% endif %}>{{ ft }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit_transmission">Transmission</label>
+                    <select id="edit_transmission" name="transmission" class="form-control">
+                        {% for tr in ['Manual', 'Automatic', 'iMT', 'CVT', 'DCT'] %}
+                            <option value="{{ tr }}" {% if selected_vehicle.transmission == tr %}selected{% endif %}>{{ tr }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit_current_odometer">Current Odometer (km)</label>
+                    <input type="number" id="edit_current_odometer" name="current_odometer" class="form-control" 
+                           value="{{ selected_vehicle.current_odometer }}" min="0">
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="edit_manufacturing_year">Manufacturing Year</label>
+                    <input type="number" id="edit_manufacturing_year" name="manufacturing_year" class="form-control" 
+                           value="{{ selected_vehicle.manufacturing_year or '' }}" min="1950" max="2030">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit_color">Color</label>
+                    <input type="text" id="edit_color" name="color" class="form-control" 
+                           value="{{ selected_vehicle.color or '' }}">
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="edit_insurance_expiry">Insurance Expiry Date</label>
+                    <input type="date" id="edit_insurance_expiry" name="insurance_expiry" class="form-control"
+                           value="{{ selected_vehicle.insurance_expiry or '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit_pollution_expiry">Pollution (PUCC) Expiry</label>
+                    <input type="date" id="edit_pollution_expiry" name="pollution_expiry" class="form-control"
+                           value="{{ selected_vehicle.pollution_expiry or '' }}">
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.85rem; margin-top: 1.75rem;">
+                <button type="button" onclick="closeModal('editVehicleModal')" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    <i data-lucide="check"></i> Update Vehicle
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

@@ -1,11 +1,19 @@
-# pyrefly: ignore[missing-import]
-from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
+import os
+import uuid
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, session, current_app
+from werkzeug.utils import secure_filename
 from app.models import db
 from app.models.vehicle import Vehicle
 from app.models.reminder import Reminder
+from app.models.document import Document
 from app.routes.auth import login_required, get_current_user
 
 reminders_bp = Blueprint('reminders', __name__)
+
+ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'webp'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @reminders_bp.route('/reminders')
 @login_required
@@ -88,6 +96,98 @@ def add():
     flash(f'Reminder "{title}" set successfully!', 'success')
     return redirect(url_for('reminders.index', selected=vehicle.id))
 
+@reminders_bp.route('/reminders/complete/<int:reminder_id>', methods=['POST'])
+@login_required
+def complete(reminder_id):
+    """Complete a reminder with optional new validity date, document upload, or skip option."""
+    user = get_current_user()
+    reminder = db.session.get(Reminder, reminder_id)
+
+    if not reminder:
+        abort(404)
+
+    vehicle = reminder.vehicle
+    if not vehicle or vehicle.user_id != user.id:
+        abort(403)
+
+    new_expiry_date = request.form.get('new_expiry_date', '').strip()
+    skip_document = request.form.get('skip_document') == '1'
+    completion_notes = request.form.get('completion_notes', '').strip()
+
+    is_insurance = reminder.is_insurance_reminder()
+    is_pollution = reminder.is_pollution_reminder()
+    doc_type = 'Insurance' if is_insurance else ('PUCC' if is_pollution else 'Invoice')
+
+    # Update vehicle compliance expiration if date provided
+    updated_compliance = False
+    if is_insurance and new_expiry_date:
+        vehicle.insurance_expiry = new_expiry_date
+        updated_compliance = True
+    elif is_pollution and new_expiry_date:
+        vehicle.pollution_expiry = new_expiry_date
+        updated_compliance = True
+
+    # Handle document upload if provided and not skipped
+    uploaded_doc_name = None
+    if not skip_document and 'document_file' in request.files:
+        file = request.files['document_file']
+        if file and file.filename != '':
+            if allowed_file(file.filename):
+                original_filename = secure_filename(file.filename)
+                extension = original_filename.rsplit('.', 1)[1].lower()
+                random_filename = f"{uuid.uuid4().hex}.{extension}"
+
+                docs_upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'documents')
+                os.makedirs(docs_upload_dir, exist_ok=True)
+                disk_path = os.path.join(docs_upload_dir, random_filename)
+                file.save(disk_path)
+                file_size = os.path.getsize(disk_path)
+
+                doc = Document(
+                    vehicle_id=vehicle.id,
+                    document_type=doc_type,
+                    filename=random_filename,
+                    original_filename=original_filename,
+                    secure_storage_path=disk_path,
+                    file_size=file_size
+                )
+                db.session.add(doc)
+                uploaded_doc_name = original_filename
+            else:
+                flash('Uploaded file type is unsupported. Allowed: PDF, PNG, JPG, JPEG, WEBP.', 'warning')
+
+    # Update reminder status and optional completion note
+    reminder.status = 'Completed'
+    if completion_notes:
+        if reminder.description:
+            reminder.description = f"{reminder.description} • Note: {completion_notes}"
+        else:
+            reminder.description = f"Note: {completion_notes}"
+
+    # Sync session cached vehicles for cross-container serverless persistence
+    cached_vehicles = session.get('_user_vehicles', [])
+    for uv in cached_vehicles:
+        if uv.get('id') == vehicle.id:
+            uv['insurance_expiry'] = vehicle.insurance_expiry
+            uv['pollution_expiry'] = vehicle.pollution_expiry
+    session['_user_vehicles'] = cached_vehicles
+    session.modified = True
+
+    db.session.commit()
+
+    # User feedback flashes
+    if is_insurance and updated_compliance:
+        flash(f'Insurance renewed! {vehicle.display_name} policy expiry updated to {new_expiry_date}.', 'success')
+    elif is_pollution and updated_compliance:
+        flash(f'Pollution (PUCC) renewed! {vehicle.display_name} PUCC validity updated to {new_expiry_date}.', 'success')
+    else:
+        flash(f'Task "{reminder.title}" marked as completed!', 'success')
+
+    if uploaded_doc_name:
+        flash(f'Certificate "{uploaded_doc_name}" securely filed into Document Vault.', 'info')
+
+    return redirect(url_for('reminders.index', selected=vehicle.id))
+
 @reminders_bp.route('/reminders/toggle/<int:reminder_id>', methods=['POST'])
 @login_required
 def toggle(reminder_id):
@@ -105,6 +205,7 @@ def toggle(reminder_id):
         reminder.status = 'Upcoming'
         flash(f'Reminder "{reminder.title}" marked as pending.', 'info')
     else:
+        # If toggling an active reminder without modal (fallback)
         reminder.status = 'Completed'
         flash(f'Reminder "{reminder.title}" marked as completed!', 'success')
 

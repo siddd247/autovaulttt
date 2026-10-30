@@ -113,6 +113,8 @@ a {
 .app-wrapper {
   display: flex;
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* Sidebar Navigation */
@@ -335,6 +337,7 @@ a {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-width: 0;
 }
 
 .topbar {
@@ -1435,9 +1438,11 @@ select.form-control option {
 
 /* Footer */
 .app-footer {
-  padding: 1.5rem 2rem;
+  padding: 1.25rem 2.25rem;
   border-top: 1px solid var(--border-color);
   background: var(--bg-surface);
+  width: 100%;
+  margin-top: auto;
 }
 
 .footer-inner {
@@ -1525,3 +1530,238 @@ select.form-control option {
     text-align: center;
   }
 }
+
+/* ==========================================================================
+   Refined Live Demo Cockpit & Settled Regulatory Compliance Elements
+   ========================================================================== */
+
+/* Sleek Minimalist Demo Mode Bar */
+.demo-mode-banner {
+  background: rgba(14, 15, 19, 0.96);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.22);
+  padding: 0.55rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+}
+
+.demo-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.demo-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(212, 175, 55, 0.12);
+  color: var(--gold-champagne);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  font-size: 0.675rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.demo-banner-text {
+  font-size: 0.825rem;
+  color: var(--text-secondary);
+  letter-spacing: -0.01em;
+}
+
+.demo-banner-text strong {
+  color: #ffffff;
+}
+
+.btn-demo-exit {
+  background: rgba(255, 255, 255, 0.04);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.775rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-demo-exit:hover {
+  background: rgba(239, 68, 68, 0.14);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+/* Subtle, Settled Fleet Compliance Bar */
+.compliance-status-bar {
+  background: rgba(19, 20, 25, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 0.65rem 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.compliance-bar-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.775rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.compliance-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.compliance-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.775rem;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  border: 1px solid transparent;
+}
+
+.compliance-chip.chip-expired {
+  background: rgba(244, 63, 94, 0.08);
+  border-color: rgba(244, 63, 94, 0.22);
+  color: #fda4af;
+}
+
+.compliance-chip.chip-expired:hover {
+  background: rgba(244, 63, 94, 0.16);
+  border-color: rgba(244, 63, 94, 0.4);
+  color: #fff;
+}
+
+.compliance-chip.chip-soon {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.22);
+  color: #fcd34d;
+}
+
+.compliance-chip.chip-soon:hover {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fff;
+}
+
+.compliance-chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.chip-expired .compliance-chip-dot {
+  background: #f43f5e;
+}
+
+.chip-soon .compliance-chip-dot {
+  background: #f59e0b;
+}
+
+.compliance-chip-veh {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.compliance-chip-text {
+  font-weight: 500;
+}
+
+/* Subtle settled badges for Reminders & Vehicle Cards */
+.badge-subtle-rose {
+  background: rgba(244, 63, 94, 0.08);
+  color: #fda4af;
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.725rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.badge-subtle-amber {
+  background: rgba(245, 158, 11, 0.08);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.725rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.badge-subtle-green {
+  background: rgba(16, 185, 129, 0.08);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.725rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.badge-subtle-slate {
+  background: rgba(148, 163, 184, 0.08);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.725rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-outline-gold {
+  background: transparent;
+  color: var(--gold-champagne);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-outline-gold:hover {
+  background: rgba(212, 175, 55, 0.12);
+  color: #ffffff;
+  border-color: #d4af37;
+  transform: translateY(-1px);
+}
+

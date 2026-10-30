@@ -35,6 +35,12 @@
             <button type="submit" class="btn btn-primary btn-block" style="padding: 0.85rem; margin-top: 1.75rem;">
                 <i data-lucide="log-in" style="width: 18px; height: 18px;"></i> Sign In to Cockpit
             </button>
+            <div style="text-align: center; margin: 1.25rem 0 0.5rem;">
+                <span style="font-size: 0.8rem; color: var(--text-muted);">— OR —</span>
+            </div>
+            <a href="{{ url_for('auth.demo') }}" class="btn btn-outline-gold btn-block" style="padding: 0.75rem; text-align: center; justify-content: center;">
+                <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> View Live Demo Fleet (Instant Access)
+            </a>
         </form>
 
         <div class="auth-footer">

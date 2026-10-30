@@ -24,7 +24,7 @@
                 {% for v in vehicles %}
                     <a href="{{ url_for('reminders.index', selected=v.id) }}" 
                        class="btn {% if selected_vehicle and selected_vehicle.id == v.id %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
-                        <i data-lucide="car"></i> {{ v.display_name }} ({{ v.registration_number or 'No Reg' }})
+                        <i data-lucide="{% if 'hunter' in v.model.lower() or 'bullet' in v.model.lower() or 'bike' in (v.variant or '').lower() %}bike{% else %}car{% endif %}" style="width: 14px; height: 14px;"></i> {{ v.display_name }} ({{ v.registration_number or 'No Reg' }})
                     </a>
                 {% endfor %}
             </div>
@@ -132,35 +132,45 @@
                                         </td>
                                         <td>
                                             {% if r.priority == 'High' %}
-                                                <span class="badge-tag" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.3);">High Priority</span>
+                                                <span class="badge-subtle-amber">High Priority</span>
                                             {% elif r.priority == 'Medium' %}
-                                                <span class="badge-tag" style="background: rgba(249, 115, 22, 0.15); color: #fb923c; border-color: rgba(249, 115, 22, 0.3);">Medium</span>
+                                                <span class="badge-subtle-slate">Medium</span>
                                             {% else %}
-                                                <span class="badge-tag" style="background: rgba(212, 175, 55, 0.15); color: #f5d77f; border-color: rgba(212, 175, 55, 0.3);">Low</span>
+                                                <span class="badge-subtle-slate" style="opacity: 0.8;">Low</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             {% if r.computed_status == 'Overdue' %}
-                                                <span class="badge-tag" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.4); font-weight: 700;">
-                                                    <i data-lucide="alert-octagon" style="width: 12px; height: 12px;"></i> Overdue
+                                                <span class="badge-subtle-rose">
+                                                    <i data-lucide="clock-alert" style="width: 12px; height: 12px;"></i> Overdue
                                                 </span>
                                             {% elif r.computed_status == 'Due Soon' %}
-                                                <span class="badge-vault-amber" style="font-weight: 700;">
+                                                <span class="badge-subtle-amber">
                                                     <i data-lucide="clock" style="width: 12px; height: 12px;"></i> Due Soon
                                                 </span>
                                             {% else %}
-                                                <span class="badge-vault-blue">
+                                                <span class="badge-subtle-slate">
                                                     <i data-lucide="calendar" style="width: 12px; height: 12px;"></i> Upcoming
                                                 </span>
                                             {% endif %}
                                         </td>
                                         <td style="text-align: right;">
                                             <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                                                <form method="POST" action="{{ url_for('reminders.toggle', reminder_id=r.id) }}">
-                                                    <button type="submit" class="btn btn-secondary btn-sm" title="Mark Task Completed">
-                                                        <i data-lucide="check" style="width: 14px; height: 14px; color: #10b981;"></i> Complete
-                                                    </button>
-                                                </form>
+                                                <button type="button" 
+                                                        class="btn btn-secondary btn-sm" 
+                                                        title="Review and complete reminder"
+                                                        onclick="openCompleteReminderModal({
+                                                            id: {{ r.id }},
+                                                            title: {{ r.title|tojson }},
+                                                            description: {{ (r.description or '')|tojson }},
+                                                            vehicleName: {{ selected_vehicle.display_name|tojson }},
+                                                            vehicleReg: {{ (selected_vehicle.registration_number or '')|tojson }},
+                                                            isInsurance: {{ 'true' if r.is_insurance_reminder() else 'false' }},
+                                                            isPollution: {{ 'true' if r.is_pollution_reminder() else 'false' }},
+                                                            currentDue: {{ (r.due_date or '')|tojson }}
+                                                        })">
+                                                    <i data-lucide="check" style="width: 14px; height: 14px; color: #10b981;"></i> Complete
+                                                </button>
                                                 <form method="POST" action="{{ url_for('reminders.delete', reminder_id=r.id) }}" onsubmit="return confirm('Delete this reminder?');">
                                                     <button type="submit" class="logout-icon-btn" title="Delete">
                                                         <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
@@ -308,5 +318,141 @@
         </form>
     </div>
 </div>
+
+<!-- Modal: Confirm Completion & Document Upload / Renewal -->
+<div id="completeReminderModal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 540px;">
+        <div class="modal-header">
+            <h3 class="modal-title" style="display: flex; align-items: center; gap: 0.6rem;">
+                <i data-lucide="shield-check" style="color: #10b981; width: 22px; height: 22px;"></i>
+                <span id="completeModalHeading">Complete Task</span>
+            </h3>
+            <button class="modal-close-btn" onclick="closeModal('completeReminderModal')">&times;</button>
+        </div>
+
+        <form id="completeReminderForm" method="POST" action="" enctype="multipart/form-data">
+            <!-- Summary Details Box -->
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                    <span id="modalVehicleBadge" style="font-size: 0.75rem; font-weight: 700; color: var(--gold-champagne); letter-spacing: 0.05em; text-transform: uppercase;"></span>
+                    <span id="modalDueInfo" style="font-size: 0.75rem; color: var(--text-muted);"></span>
+                </div>
+                <div id="modalReminderTitle" style="font-size: 1.1rem; font-weight: 700; color: #ffffff;"></div>
+                <div id="modalReminderDesc" style="font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.4;"></div>
+            </div>
+
+            <!-- Dynamic Expiry Date Section for Insurance / PUCC -->
+            <div id="expirySection" style="display: none; margin-bottom: 1.25rem;">
+                <label class="form-label" for="new_expiry_date" id="expiryLabel" style="font-weight: 600;"></label>
+                <input type="date" id="new_expiry_date" name="new_expiry_date" class="form-control">
+                <p id="expiryHelpText" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem; line-height: 1.4;"></p>
+            </div>
+
+            <!-- Document Attachment Section with Skip Option -->
+            <div style="margin-bottom: 1.25rem;">
+                <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; font-weight: 600;">
+                    <span id="docLabel">Attach Renewed Document (Optional)</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">PDF, JPG, PNG</span>
+                </label>
+                <input type="file" id="renewed_document" name="document_file" class="form-control" accept=".pdf,.png,.jpg,.jpeg,.webp">
+                
+                <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.65rem; background: rgba(255, 255, 255, 0.02); padding: 0.6rem 0.85rem; border-radius: 6px; border: 1px dashed var(--border-color);">
+                    <input type="checkbox" id="skip_document" name="skip_document" value="1" style="width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer;" onchange="toggleDocUploadDisabled(this)">
+                    <label for="skip_document" style="font-size: 0.825rem; color: var(--text-secondary); cursor: pointer; user-select: none;">
+                        Skip document upload for now (update record without attaching a file)
+                    </label>
+                </div>
+            </div>
+
+            <!-- Optional Completion Note -->
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label class="form-label" for="completion_notes">Completion Note / Policy Reference (Optional)</label>
+                <input type="text" id="completion_notes" name="completion_notes" class="form-control" placeholder="e.g. Renewed online, policy #ABC-9821, receipt attached">
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; justify-content: flex-end; gap: 0.85rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                <button type="button" onclick="closeModal('completeReminderModal')" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.45rem;">
+                    <i data-lucide="check"></i> Confirm & Complete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openCompleteReminderModal(data) {
+    const form = document.getElementById('completeReminderForm');
+    form.action = `/reminders/complete/${data.id}`;
+
+    document.getElementById('modalReminderTitle').textContent = data.title;
+    document.getElementById('modalVehicleBadge').textContent = `${data.vehicleName} • ${data.vehicleReg || 'No Reg'}`;
+    document.getElementById('modalReminderDesc').textContent = data.description || 'Marking this scheduled task as completed.';
+    document.getElementById('modalDueInfo').textContent = data.currentDue ? `Due: ${data.currentDue}` : 'No target due date';
+
+    const expirySection = document.getElementById('expirySection');
+    const expiryLabel = document.getElementById('expiryLabel');
+    const expiryInput = document.getElementById('new_expiry_date');
+    const expiryHelp = document.getElementById('expiryHelpText');
+    const docLabel = document.getElementById('docLabel');
+    const heading = document.getElementById('completeModalHeading');
+    const skipCheck = document.getElementById('skip_document');
+    const fileInput = document.getElementById('renewed_document');
+    const notesInput = document.getElementById('completion_notes');
+
+    skipCheck.checked = false;
+    fileInput.disabled = false;
+    fileInput.value = '';
+    notesInput.value = '';
+
+    const today = new Date();
+    const nextYear = new Date(today);
+    nextYear.setFullYear(today.getFullYear() + 1);
+    const yyyy = nextYear.getFullYear();
+    const mm = String(nextYear.getMonth() + 1).padStart(2, '0');
+    const dd = String(nextYear.getDate()).padStart(2, '0');
+    const nextYearStr = `${yyyy}-${mm}-${dd}`;
+
+    if (data.isInsurance) {
+        heading.textContent = 'Confirm Insurance Policy Renewal';
+        expirySection.style.display = 'block';
+        expiryLabel.textContent = 'New Insurance Policy Expiry Date *';
+        expiryInput.value = nextYearStr;
+        expiryInput.required = true;
+        expiryHelp.textContent = 'Updating this will immediately synchronize your vehicle\'s policy validity and clear expired alerts from your dashboard.';
+        docLabel.textContent = 'Upload New Insurance Policy Document (Optional)';
+    } else if (data.isPollution) {
+        heading.textContent = 'Confirm Pollution (PUCC) Renewal';
+        expirySection.style.display = 'block';
+        expiryLabel.textContent = 'New Pollution (PUCC) Expiry Date *';
+        expiryInput.value = nextYearStr;
+        expiryInput.required = true;
+        expiryHelp.textContent = 'Updating this will immediately synchronize your vehicle\'s PUCC status and clear expired compliance notices on the home dashboard.';
+        docLabel.textContent = 'Upload New PUCC Certificate (Optional)';
+    } else {
+        heading.textContent = 'Confirm Task Completion';
+        expirySection.style.display = 'none';
+        expiryInput.required = false;
+        expiryInput.value = '';
+        docLabel.textContent = 'Attach Service Invoice or Receipt (Optional)';
+    }
+
+    openModal('completeReminderModal');
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+}
+
+function toggleDocUploadDisabled(checkbox) {
+    const fileInput = document.getElementById('renewed_document');
+    if (checkbox.checked) {
+        fileInput.value = '';
+        fileInput.disabled = true;
+    } else {
+        fileInput.disabled = false;
+    }
+}
+</script>
 {% endif %}
 {% endblock %}

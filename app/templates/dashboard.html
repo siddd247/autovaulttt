@@ -11,7 +11,40 @@
         <p style="color: var(--text-secondary); font-size: 0.95rem;">Live operational status and telemetry for your vehicle vault.</p>
     </div>
 
+    <!-- Fleet Regulatory & Compliance Summary (Subtle, Settled & Non-intrusive) -->
+    {% if document_alerts %}
+        <div class="compliance-status-bar">
+            <div class="compliance-bar-title">
+                <i data-lucide="shield-check" style="width: 14px; height: 14px; color: var(--gold-champagne);"></i>
+                <span>Compliance:</span>
+            </div>
+            <div class="compliance-chips-row">
+                {% for alert in document_alerts %}
+                    <a href="{{ url_for('reminders.index', selected=alert.vehicle.id) }}" class="compliance-chip {% if alert.status == 'Expired' %}chip-expired{% else %}chip-soon{% endif %}" title="Click to view and complete {{ alert.type }} renewal reminder">
+                        <span class="compliance-chip-dot"></span>
+                        <span class="compliance-chip-veh">{{ alert.vehicle.model }}</span>
+                        <span class="compliance-chip-text">{{ alert.type }}: {{ alert.status }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
     {% if primary_vehicle %}
+        <!-- Multi-Vehicle Garage Switcher Tabs if multiple vehicles exist -->
+        {% if vehicles|length > 1 %}
+            <div style="display: flex; gap: 0.75rem; overflow-x: auto; margin-bottom: 1.5rem; padding-bottom: 0.35rem;">
+                {% for v in vehicles %}
+                    <a href="{{ url_for('dashboard.index', selected=v.id) }}" 
+                       class="btn {% if primary_vehicle and primary_vehicle.id == v.id %}btn-primary{% else %}btn-secondary{% endif %} btn-sm"
+                       style="white-space: nowrap; display: inline-flex; align-items: center; gap: 0.45rem;">
+                        <i data-lucide="{% if 'hunter' in v.model.lower() or 'bullet' in v.model.lower() or 'bike' in (v.variant or '').lower() %}bike{% else %}car{% endif %}" style="width: 14px; height: 14px;"></i>
+                        {{ v.display_name }} ({{ v.registration_number or 'No Reg' }})
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         <!-- Active Vehicle Cockpit Banner -->
         <div class="vehicle-showcase-card">
             <div>
@@ -25,6 +58,18 @@
                     <span class="badge-tag"><i data-lucide="cpu" style="width: 12px; height: 12px;"></i> {{ primary_vehicle.transmission }}</span>
                     {% if primary_vehicle.registration_number %}
                         <span class="badge-tag badge-vault-blue" style="letter-spacing: 0.06em; font-weight: 700;">{{ primary_vehicle.registration_number }}</span>
+                    {% endif %}
+                    {% set ins_status = primary_vehicle.get_insurance_status() %}
+                    {% if ins_status.status != 'Unspecified' %}
+                        <span class="badge-tag {% if ins_status.status == 'Expired' %}badge-subtle-rose{% elif ins_status.status == 'Expiring Soon' %}badge-subtle-amber{% else %}badge-subtle-green{% endif %}">
+                            <i data-lucide="shield" style="width: 12px; height: 12px;"></i> Ins: {{ ins_status.status }}
+                        </span>
+                    {% endif %}
+                    {% set pol_status = primary_vehicle.get_pollution_status() %}
+                    {% if pol_status.status != 'Unspecified' %}
+                        <span class="badge-tag {% if pol_status.status == 'Expired' %}badge-subtle-rose{% elif pol_status.status == 'Expiring Soon' %}badge-subtle-amber{% else %}badge-subtle-green{% endif %}">
+                            <i data-lucide="leaf" style="width: 12px; height: 12px;"></i> PUCC: {{ pol_status.status }}
+                        </span>
                     {% endif %}
                 </div>
                 <div class="vehicle-odo-large">

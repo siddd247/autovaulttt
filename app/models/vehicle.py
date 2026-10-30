@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from app.models import db
 
 class Vehicle(db.Model):
@@ -26,6 +26,68 @@ class Vehicle(db.Model):
     def display_name(self) -> str:
         """Helper to return readable title e.g. 'Hyundai i20'."""
         return f"{self.manufacturer} {self.model}"
+
+    def get_insurance_status(self) -> dict:
+        """Evaluate insurance policy expiry dynamically against today's date."""
+        if not self.insurance_expiry:
+            return {'status': 'Unspecified', 'badge': 'badge-vault-gray', 'days': None, 'text': 'Not Set'}
+        try:
+            exp_date = datetime.strptime(self.insurance_expiry, '%Y-%m-%d').date()
+            delta = (exp_date - date.today()).days
+            if delta < 0:
+                return {
+                    'status': 'Expired',
+                    'badge': 'badge-vault-red',
+                    'days': abs(delta),
+                    'text': f'Expired {abs(delta)} days ago ({self.insurance_expiry})'
+                }
+            elif delta <= 15:
+                return {
+                    'status': 'Expiring Soon',
+                    'badge': 'badge-vault-amber',
+                    'days': delta,
+                    'text': f'Expires in {delta} days ({self.insurance_expiry})'
+                }
+            else:
+                return {
+                    'status': 'Active',
+                    'badge': 'badge-vault-green',
+                    'days': delta,
+                    'text': f'Valid until {self.insurance_expiry} ({delta}d)'
+                }
+        except ValueError:
+            return {'status': 'Valid', 'badge': 'badge-vault-green', 'days': None, 'text': self.insurance_expiry}
+
+    def get_pollution_status(self) -> dict:
+        """Evaluate pollution (PUCC) certificate expiry dynamically against today's date."""
+        if not self.pollution_expiry:
+            return {'status': 'Unspecified', 'badge': 'badge-vault-gray', 'days': None, 'text': 'Not Set'}
+        try:
+            exp_date = datetime.strptime(self.pollution_expiry, '%Y-%m-%d').date()
+            delta = (exp_date - date.today()).days
+            if delta < 0:
+                return {
+                    'status': 'Expired',
+                    'badge': 'badge-vault-red',
+                    'days': abs(delta),
+                    'text': f'Expired {abs(delta)} days ago ({self.pollution_expiry})'
+                }
+            elif delta <= 7:
+                return {
+                    'status': 'Expiring Soon',
+                    'badge': 'badge-vault-amber',
+                    'days': delta,
+                    'text': f'Expires in {delta} days ({self.pollution_expiry})'
+                }
+            else:
+                return {
+                    'status': 'Active',
+                    'badge': 'badge-vault-green',
+                    'days': delta,
+                    'text': f'Valid until {self.pollution_expiry} ({delta}d)'
+                }
+        except ValueError:
+            return {'status': 'Valid', 'badge': 'badge-vault-green', 'days': None, 'text': self.pollution_expiry}
 
     def __repr__(self):
         return f"<Vehicle {self.manufacturer} {self.model} ({self.registration_number})>"

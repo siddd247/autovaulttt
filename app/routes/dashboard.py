@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, date
-from flask import Blueprint, render_template, session, redirect, url_for
+from flask import Blueprint, render_template, session, redirect, url_for, request
 from app.models.vehicle import Vehicle
 from app.models.fuel import FuelEntry
 from app.models.maintenance import MaintenanceRecord
@@ -21,7 +21,39 @@ def index():
     """Central user command dashboard populated with real telemetry and event streams."""
     user = get_current_user()
     vehicles = Vehicle.query.filter_by(user_id=user.id).order_by(Vehicle.created_at.desc()).all()
-    primary_vehicle = vehicles[0] if vehicles else None
+    selected_id = request.args.get('selected', type=int)
+    primary_vehicle = None
+    if selected_id:
+        primary_vehicle = Vehicle.query.filter_by(id=selected_id, user_id=user.id).first()
+    if not primary_vehicle and vehicles:
+        primary_vehicle = vehicles[0]
+
+    # Fleet-wide Document Expiry Alerts (Insurance & PUCC)
+    document_alerts = []
+    for v in vehicles:
+        ins = v.get_insurance_status()
+        if ins['status'] == 'Expired':
+            document_alerts.append({
+                'vehicle': v, 'type': 'Insurance Policy', 'status': 'Expired',
+                'badge': 'badge-vault-red', 'message': f"{v.display_name} ({v.registration_number or 'No Reg'}): Insurance policy expired {ins['days']} days ago!"
+            })
+        elif ins['status'] == 'Expiring Soon':
+            document_alerts.append({
+                'vehicle': v, 'type': 'Insurance Policy', 'status': 'Expiring Soon',
+                'badge': 'badge-vault-amber', 'message': f"{v.display_name} ({v.registration_number or 'No Reg'}): Insurance policy expires in {ins['days']} days."
+            })
+
+        pol = v.get_pollution_status()
+        if pol['status'] == 'Expired':
+            document_alerts.append({
+                'vehicle': v, 'type': 'Pollution (PUCC)', 'status': 'Expired',
+                'badge': 'badge-vault-red', 'message': f"{v.display_name} ({v.registration_number or 'No Reg'}): PUCC emission certificate expired {pol['days']} days ago!"
+            })
+        elif pol['status'] == 'Expiring Soon':
+            document_alerts.append({
+                'vehicle': v, 'type': 'Pollution (PUCC)', 'status': 'Expiring Soon',
+                'badge': 'badge-vault-amber', 'message': f"{v.display_name} ({v.registration_number or 'No Reg'}): PUCC emission certificate expires in {pol['days']} days."
+            })
 
     # Telemetry summaries
     fuel_stats = {'avg_mileage': None, 'monthly_cost': 0.0, 'total_cost': 0.0}
@@ -124,5 +156,6 @@ def index():
         fuel_stats=fuel_stats,
         maint_stats=maint_stats,
         reminder_stats=reminder_stats,
+        document_alerts=document_alerts,
         recent_activities=recent_activities[:6]
     )

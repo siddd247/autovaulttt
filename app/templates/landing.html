@@ -22,6 +22,9 @@
             <a href="#about">Project Specs</a>
         </nav>
         <div style="display: flex; gap: 0.85rem; align-items: center;">
+            <a href="{{ url_for('auth.demo') }}" class="btn btn-outline-gold btn-sm" title="Explore live multi-vehicle demo fleet">
+                <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View Demo
+            </a>
             {% if current_user %}
                 <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary btn-sm">Enter Cockpit</a>
             {% else %}
@@ -43,12 +46,15 @@
                 Eliminate scattered paper invoices, lost service records, and unprotected spreadsheets. AutoVault centralizes real-time telemetry, fuel monitoring, maintenance logs, and regulatory paperwork behind cryptographic defense-in-depth security.
             </p>
             <div class="hero-actions">
+                <a href="{{ url_for('auth.demo') }}" class="btn btn-primary" style="padding: 0.85rem 2rem; font-size: 1rem; background: linear-gradient(135deg, #f5d77f, #d4af37, #996515); color: #0b0c10; font-weight: 800; border: none; box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);">
+                    <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i> View Live Demo Fleet
+                </a>
                 {% if current_user %}
-                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary" style="padding: 0.85rem 2rem; font-size: 1rem;">
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary" style="padding: 0.85rem 2rem; font-size: 1rem;">
                         <i data-lucide="layout-dashboard"></i> Enter Control Center
                     </a>
                 {% else %}
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary" style="padding: 0.85rem 2rem; font-size: 1rem;">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-secondary" style="padding: 0.85rem 2rem; font-size: 1rem;">
                         <i data-lucide="shield-plus"></i> Initialize Secure Vault
                     </a>
                     <a href="{{ url_for('auth.login') }}" class="btn btn-secondary" style="padding: 0.85rem 2rem; font-size: 1rem;">
