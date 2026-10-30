@@ -174,19 +174,17 @@
                                             <div style="display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
                                                 <button type="button" 
                                                         id="complete-btn-{{ r.id }}"
-                                                        class="btn btn-primary btn-sm" 
-                                                        style="display: inline-flex; align-items: center; gap: 0.45rem;"
+                                                        class="btn btn-primary btn-sm btn-complete-reminder" 
+                                                        style="display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer;"
                                                         title="Complete task and renew validity"
-                                                        onclick="openCompleteReminderModal({
-                                                            id: {{ r.id }},
-                                                            title: {{ r.title|tojson }},
-                                                            description: {{ (r.description or '')|tojson }},
-                                                            vehicleName: {{ selected_vehicle.display_name|tojson }},
-                                                            vehicleReg: {{ (selected_vehicle.registration_number or '')|tojson }},
-                                                            isInsurance: {{ 'true' if r.is_insurance_reminder() else 'false' }},
-                                                            isPollution: {{ 'true' if r.is_pollution_reminder() else 'false' }},
-                                                            currentDue: {{ (r.due_date or '')|tojson }}
-                                                        })">
+                                                        data-id="{{ r.id }}"
+                                                        data-title="{{ r.title }}"
+                                                        data-description="{{ r.description or '' }}"
+                                                        data-veh-name="{{ selected_vehicle.display_name }}"
+                                                        data-veh-reg="{{ selected_vehicle.registration_number or '' }}"
+                                                        data-is-insurance="{{ '1' if r.is_insurance_reminder() else '0' }}"
+                                                        data-is-pollution="{{ '1' if r.is_pollution_reminder() else '0' }}"
+                                                        data-current-due="{{ r.due_date or '' }}">
                                                     <i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i> Complete &amp; Renew
                                                 </button>
                                                 <form method="POST" action="{{ url_for('reminders.delete', reminder_id=r.id) }}" onsubmit="return confirm('Delete this reminder?');">
@@ -408,7 +406,7 @@
 </div>
 
 <script>
-function openCompleteReminderModal(data) {
+window.openCompleteReminderModal = function(data) {
     const form = document.getElementById('completeReminderForm');
     form.action = `/reminders/complete/${data.id}`;
 
@@ -443,18 +441,18 @@ function openCompleteReminderModal(data) {
     if (data.isInsurance) {
         heading.textContent = 'Confirm Insurance Policy Renewal';
         expirySection.style.display = 'block';
-        expiryLabel.textContent = 'New Insurance Policy Expiry Date *';
+        expiryLabel.textContent = 'New Insurance Policy Expiry Date (Optional)';
         expiryInput.value = nextYearStr;
-        expiryInput.required = true;
-        expiryHelp.textContent = 'Updating this will immediately synchronize your vehicle\'s policy validity and clear expired alerts from your dashboard.';
+        expiryInput.required = false;
+        expiryHelp.textContent = 'Pre-filled with 1-year validity. Keep this or adjust it to renew vehicle insurance.';
         docLabel.textContent = 'Upload New Insurance Policy Document (Optional)';
     } else if (data.isPollution) {
         heading.textContent = 'Confirm Pollution (PUCC) Renewal';
         expirySection.style.display = 'block';
-        expiryLabel.textContent = 'New Pollution (PUCC) Expiry Date *';
+        expiryLabel.textContent = 'New Pollution (PUCC) Expiry Date (Optional)';
         expiryInput.value = nextYearStr;
-        expiryInput.required = true;
-        expiryHelp.textContent = 'Updating this will immediately synchronize your vehicle\'s PUCC status and clear expired compliance notices on the home dashboard.';
+        expiryInput.required = false;
+        expiryHelp.textContent = 'Pre-filled with 1-year validity. Keep this or adjust it to renew PUCC certificate.';
         docLabel.textContent = 'Upload New PUCC Certificate (Optional)';
     } else {
         heading.textContent = 'Confirm Task Completion';
@@ -464,11 +462,18 @@ function openCompleteReminderModal(data) {
         docLabel.textContent = 'Attach Service Invoice or Receipt (Optional)';
     }
 
-    openModal('completeReminderModal');
+    // Direct modal activation
+    const modal = document.getElementById('completeReminderModal');
+    if (modal) {
+        modal.classList.add('active');
+    }
+    if (typeof window.openModal === 'function') {
+        window.openModal('completeReminderModal');
+    }
     if (window.lucide) {
         lucide.createIcons();
     }
-}
+};
 
 function toggleDocUploadDisabled(checkbox) {
     const fileInput = document.getElementById('renewed_document');
@@ -479,6 +484,24 @@ function toggleDocUploadDisabled(checkbox) {
         fileInput.disabled = false;
     }
 }
+
+// Global click event delegation for "Complete & Renew" buttons
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-complete-reminder');
+    if (btn) {
+        e.preventDefault();
+        window.openCompleteReminderModal({
+            id: parseInt(btn.dataset.id, 10),
+            title: btn.dataset.title,
+            description: btn.dataset.description,
+            vehicleName: btn.dataset.vehName,
+            vehicleReg: btn.dataset.vehReg,
+            isInsurance: btn.dataset.isInsurance === '1',
+            isPollution: btn.dataset.isPollution === '1',
+            currentDue: btn.dataset.currentDue
+        });
+    }
+});
 
 // Auto-open modal if user clicked compliance alert from Dashboard
 document.addEventListener('DOMContentLoaded', () => {

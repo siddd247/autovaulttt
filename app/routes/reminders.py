@@ -118,13 +118,20 @@ def complete(reminder_id):
     is_pollution = reminder.is_pollution_reminder()
     doc_type = 'Insurance' if is_insurance else ('PUCC' if is_pollution else 'Invoice')
 
-    # Update vehicle compliance expiration if date provided
+    # Update vehicle compliance expiration (default to +1 year if left blank or skipped)
+    from datetime import date, timedelta
+    default_one_year = (date.today() + timedelta(days=365)).isoformat()
     updated_compliance = False
-    if is_insurance and new_expiry_date:
-        vehicle.insurance_expiry = new_expiry_date
+
+    if is_insurance:
+        effective_date = new_expiry_date if new_expiry_date else default_one_year
+        vehicle.insurance_expiry = effective_date
+        new_expiry_date = effective_date
         updated_compliance = True
-    elif is_pollution and new_expiry_date:
-        vehicle.pollution_expiry = new_expiry_date
+    elif is_pollution:
+        effective_date = new_expiry_date if new_expiry_date else default_one_year
+        vehicle.pollution_expiry = effective_date
+        new_expiry_date = effective_date
         updated_compliance = True
 
     # Handle document upload if provided and not skipped
